@@ -1,9 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// =========================================================================
-// CONFIGURACIÓN DE CREDENCIALES DE PRODUCCIÓN - DEBES REEMPLAZAR ESTO
-// =========================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyC2aGcaFnSL-aSp5XvFjb0WTiJFrEWJko0",
+  authDomain: "ecos-del-trono.firebaseapp.com",
+  projectId: "ecos-del-trono",
+  storageBucket: "ecos-del-trono.firebasestorage.app",
+  messagingSenderId: "916346464912",
+  appId: "1:916346464912:web:3932c51cc83cfc330d8615",
+  measurementId: "G-1EVTFCPC51"
+};
+
 const firebaseConfig = {
     apiKey: "AIzaSyD-EjemploDeKeyRealSENA2026_Xyz",
     authDomain: "tu-proyecto-sena.firebaseapp.com",
