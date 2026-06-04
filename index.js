@@ -11,15 +11,6 @@ const firebaseConfig = {
   measurementId: "G-1EVTFCPC51"
 };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyD-EjemploDeKeyRealSENA2026_Xyz",
-    authDomain: "tu-proyecto-sena.firebaseapp.com",
-    projectId: "tu-proyecto-sena",
-    storageBucket: "tu-proyecto-sena.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef123456"
-};
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
