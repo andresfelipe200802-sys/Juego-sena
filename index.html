@@ -66,6 +66,7 @@
                         <p id="host-current-fase">Fase: Esperando Conexiones</p>
                     </div>
                     <button id="btn-start-game" class="btn-success pulse-effect">🚀 Iniciar Simulación</button>
+                    <button id="btn-next-eon" class="btn-primary pulse-effect" style="margin-top: 10px; display: none; background-color: #007bff; width: 100%;">⏭️ Avanzar de Eón</button>
                 </div>
 
                 <div class="host-main">
@@ -100,19 +101,20 @@
             <div class="player-grid">
                 <div class="card panel-recursos state-glow">
                     <h3>📦 Almacenes Reales</h3>
-                    <div class="resource-item"><span>🌾 Alimento:</span> <strong id="res-alimento" class="counter-animate">0</strong></div>
-                    <div class="resource-item"><span>🪙 Oro:</span> <strong id="res-oro" class="counter-animate">0</strong></div>
-                    <div class="resource-item"><span>⚔️ Tecnología:</span> <strong id="res-tecnologia" class="counter-animate">0</strong></div>
+                    <div class="resource-item"><span>🌾 Alimento:</span> <strong id="res-alimento" class="counter-animate">80</strong></div>
+                    <div class="resource-item"><span>🪙 Oro:</span> <strong id="res-oro" class="counter-animate">150</strong></div>
+                    <div class="resource-item"><span>⚔️ Tecnología:</span> <strong id="res-tecnologia" class="counter-animate">60</strong></div>
                 </div>
 
                 <div class="card panel-accion">
                     <h3>⚡ Consola de Decisiones</h3>
                     <p id="event-player-info" class="event-hint-box">Esperando inicio del Eón por el Profesor.</p>
                     
+                    <label for="player-action-select" style="display:block; margin-top:15px; font-weight:bold; color:#a2a5b9;">Operación de Contingencia:</label>
                     <div id="role-mechanic-container" class="options-container animate-fade">
                         </div>
                     
-                    <button id="btn-submit-action" class="btn-primary action-btn-glow" style="margin-top: 20px;">🔒 Confirmar Acción del Eón</button>
+                    <button id="btn-submit-action" class="btn-primary action-btn-glow" style="margin-top: 20px; width: 100%;">🔒 Confirmar Acción del Eón</button>
                 </div>
             </div>
         </section>
@@ -126,15 +128,14 @@
                 <div class="debriefing-grid">
                     <div id="ranking-box" class="sub-panel">
                         <h3>🏆 Índice de Supervivencia</h3>
-                        <ol id="ranking-list" class="styled-list"></ol>
-                    </div>
-                    
-                    <div id="analytics-box" class="sub-panel">
-                        <h3>📊 Análisis Dinámico de Conflictos</h3>
-                        <div id="insights-container" class="insights-scroll"></div>
+                        <ol id="ranking-list" class="styled-list">
+                            <li>Ophir - Sostenible (100% supervivencia)</li>
+                            <li>Zion - Estable (85% supervivencia)</li>
+                            <li>Kallisto - Estable (80% supervivencia)</li>
+                        </ol>
                     </div>
                 </div>
-                <button id="btn-restart" class="btn-secondary tile-btn" style="margin-top: 25px;">Reiniciar Entorno Académico</button>
+                <button id="btn-restart" class="btn-secondary" style="margin-top: 25px;" onclick="window.location.reload();">Reiniciar Entorno Académico</button>
             </div>
         </section>
     </div>
