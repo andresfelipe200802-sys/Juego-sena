@@ -5,28 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ecos del Trono - SENA</title>
     <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
     <div id="app">
         <section id="screen-auth" class="screen active">
-            <div class="card">
+            <div class="card intro-card">
+                <div class="animated-bg"></div>
                 <h1>🏛️ Ecos del Trono</h1>
                 <p class="subtitle">Simulador de Alta Diplomacia y Estrategia - SENA</p>
-                <hr>
+                <hr class="glow-hr">
                 
                 <div class="auth-modes">
-                    <div class="auth-box">
-                        <h3>Profesor (Host)</h3>
-                        <button id="btn-create-host" class="btn-primary">Crear Nueva Sala</button>
+                    <div class="auth-box professor-box">
+                        <h3>👨‍🏫 Panel del Profesor</h3>
+                        <button id="btn-create-host" class="btn-primary pulse-effect">Crear Nueva Sala</button>
                     </div>
                     
-                    <div class="auth-box">
-                        <h3>Estudiante (Unirse)</h3>
+                    <div class="auth-box student-box">
+                        <h3>🛡️ Acceso Estudiante</h3>
                         <input type="text" id="input-sala-id" placeholder="Código de Sala (ej: SENA-123)" maxlength="8" autocomplete="off">
                         <input type="text" id="input-player-name" placeholder="Tu Nombre o Alias" maxlength="15" autocomplete="off">
                         
-                        <label for="select-imperio">Imperio:</label>
+                        <label for="select-imperio">Selecciona tu Imperio:</label>
                         <select id="select-imperio">
                             <option value="Aethelgard">Aethelgard (Científicos)</option>
                             <option value="Ophir">Ophir (Comerciantes)</option>
@@ -57,81 +59,82 @@
                     <h2>Sala: <span id="host-sala-display" class="highlight">---</span></h2>
                     <div id="qrcode-container"></div>
                     <p class="qr-instruction">Escanea el código QR para ingresar</p>
-                    <hr>
-                    <div class="timer-box">
+                    <hr class="glow-hr">
+                    <div class="timer-box animated-glow">
                         <h3>Tiempo del Eón</h3>
-                        <div id="host-timer" class="timer">04:00</div>
+                        <div id="host-timer" class="timer animate-pulse">04:00</div>
                         <p id="host-current-fase">Fase: Esperando Conexiones</p>
                     </div>
-                    <button id="btn-start-game" class="btn-success">🚀 Iniciar Simulación</button>
+                    <button id="btn-start-game" class="btn-success pulse-effect">🚀 Iniciar Simulación</button>
                 </div>
 
                 <div class="host-main">
-                    <div class="event-banner card">
+                    <div class="event-banner card alert-flash">
                         <h3>📜 Situación Geopolítica Continental</h3>
                         <p id="host-event-text">Esperando que el mapa geopolítico se estabilice para la asignación de recursos.</p>
                     </div>
                     
                     <div class="imperios-grid">
-                        <div class="imperio-card" id="card-Aethelgard"><h3>Aethelgard</h3><p>Sincronizando...</p></div>
-                        <div class="imperio-card" id="card-Ophir"><h3>Ophir</h3><p>Sincronizando...</p></div>
-                        <div class="imperio-card" id="card-Vulcania"><h3>Vulcania</h3><p>Sincronizando...</p></div>
-                        <div class="imperio-card" id="card-Zion"><h3>Zion</h3><p>Sincronizando...</p></div>
-                        <div class="imperio-card" id="card-Kallisto"><h3>Kallisto</h3><p>Sincronizando...</p></div>
+                        <div class="imperio-card" id="card-Aethelgard"><h3>Aethelgard</h3><div class="sync-status">Sincronizando...</div></div>
+                        <div class="imperio-card" id="card-Ophir"><h3>Ophir</h3><div class="sync-status">Sincronizando...</div></div>
+                        <div class="imperio-card" id="card-Vulcania"><h3>Vulcania</h3><div class="sync-status">Sincronizando...</div></div>
+                        <div class="imperio-card" id="card-Zion"><h3>Zion</h3><div class="sync-status">Sincronizando...</div></div>
+                        <div class="imperio-card" id="card-Kallisto"><h3>Kallisto</h3><div class="sync-status">Sincronizando...</div></div>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="screen-player" class="screen">
-            <div class="player-header">
+            <div class="player-header animate-slide">
                 <div>
                     <h2><span id="player-imperio-display">---</span></h2>
                     <span id="player-rol-display" class="role-badge">---</span>
-                    <p class="player-subname">Líder: <span id="player-name-display" style="font-weight: bold; color: #ffd700;">---</span></p>
+                    <p class="player-subname">Líder: <span id="player-name-display">---</span></p>
                 </div>
                 <div class="player-timer-box">
-                    <span id="player-timer">04:00</span>
+                    <span id="player-timer" class="timer-countdown">04:00</span>
                 </div>
             </div>
 
             <div class="player-grid">
-                <div class="card panel-recursos">
+                <div class="card panel-recursos state-glow">
                     <h3>📦 Almacenes Reales</h3>
-                    <div class="resource-item"><span>🌾 Alimento:</span> <strong id="res-alimento">0</strong></div>
-                    <div class="resource-item"><span>🪙 Oro:</span> <strong id="res-oro">0</strong></div>
-                    <div class="resource-item"><span>⚔️ Tecnología:</span> <strong id="res-tecnologia">0</strong></div>
+                    <div class="resource-item"><span>🌾 Alimento:</span> <strong id="res-alimento" class="counter-animate">0</strong></div>
+                    <div class="resource-item"><span>🪙 Oro:</span> <strong id="res-oro" class="counter-animate">0</strong></div>
+                    <div class="resource-item"><span>⚔️ Tecnología:</span> <strong id="res-tecnologia" class="counter-animate">0</strong></div>
                 </div>
 
                 <div class="card panel-accion">
                     <h3>⚡ Consola de Decisiones</h3>
-                    <p id="event-player-info" class="event-hint">Esperando inicio del Eón por el Profesor.</p>
+                    <p id="event-player-info" class="event-hint-box">Esperando inicio del Eón por el Profesor.</p>
                     
-                    <div id="role-mechanic-container"></div>
+                    <div id="role-mechanic-container" class="options-container animate-fade">
+                        </div>
                     
-                    <button id="btn-submit-action" class="btn-primary" style="margin-top: 20px;">🔒 Confirmar Acción del Eón</button>
+                    <button id="btn-submit-action" class="btn-primary action-btn-glow" style="margin-top: 20px;">🔒 Confirmar Acción del Eón</button>
                 </div>
             </div>
         </section>
 
         <section id="screen-debriefing" class="screen">
-            <div class="card final-card">
+            <div class="card final-card cinematic-in">
                 <h1>📉 Informe de Sostenibilidad Histórica</h1>
                 <h2>¿Qué aprendimos del ejercicio?</h2>
-                <hr>
+                <hr class="glow-hr">
                 
                 <div class="debriefing-grid">
                     <div id="ranking-box" class="sub-panel">
                         <h3>🏆 Índice de Supervivencia</h3>
-                        <ol id="ranking-list"></ol>
+                        <ol id="ranking-list" class="styled-list"></ol>
                     </div>
                     
                     <div id="analytics-box" class="sub-panel">
                         <h3>📊 Análisis Dinámico de Conflictos</h3>
-                        <div id="insights-container"></div>
+                        <div id="insights-container" class="insights-scroll"></div>
                     </div>
                 </div>
-                <button id="btn-restart" class="btn-secondary" style="margin-top: 25px;">Reiniciar Entorno Académico</button>
+                <button id="btn-restart" class="btn-secondary tile-btn" style="margin-top: 25px;">Reiniciar Entorno Académico</button>
             </div>
         </section>
     </div>
