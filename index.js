@@ -1,5 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2aGcaFnSL-aSp5XvFjb0WTiJFrEWJko0",
@@ -11,320 +11,231 @@ const firebaseConfig = {
   measurementId: "G-1EVTFCPC51"
 };
 
+// Inicialización de Servicios
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Estado de la Simulación en Memoria Local
-let currentSalaId = null;
-let currentImperio = null;
-let currentRol = null;
-let currentPlayerName = null;
-let isHost = false;
-let localTimer = null;
+// Variables Globales de Control de Estado
+let currentSalaId = "";
+let currentPlayerName = "";
+let currentImperio = "";
+let currentRol = "";
+let salaListener = null;
 
-const EVENTOS_EONES = [
-    { titulo: "Eón I: Plaga de Langostas", desc: "El suministro de alimentos se reduce severamente a escala continental.", penalizacion: "alimento", cantidad: -25 },
-    { titulo: "Eón II: Fiebre del Oro", desc: "Descubrimiento de venas mineras vírgenes. Oportunidad comercial.", penalizacion: "oro", cantidad: 35 },
-    { titulo: "Eón III: Ola de Espionaje", desc: "Secretos de estado vulnerados en las fronteras tecnológicas.", penalizacion: "tecnologia", cantidad: -20 },
-    { titulo: "Eón IV: Cierre de Rutas", desc: "Aranceles severos reducen la liquidez internacional drásticamente.", penalizacion: "oro", cantidad: -30 },
-    { titulo: "Eón V: Renacimiento Científico", desc: "Un avance compartido permite optimizar las matrices industriales.", penalizacion: "tecnologia", cantidad: 45 },
-    { titulo: "Eón VI: Gran Glaciación Extrema", desc: "Invierno total. Los consumos básicos de supervivencia se triplican.", penalizacion: "alimento", cantidad: -45 }
-];
-
-const IMPERIOS_INICIALES = {
-    Aethelgard: { recursos: { alimento: 100, oro: 100, tecnologia: 80 }, metricas: { coop: 0, hostil: 0 } },
-    Ophir: { recursos: { alimento: 80, oro: 150, tecnologia: 60 }, metricas: { coop: 0, hostil: 0 } },
-    Vulcania: { recursos: { alimento: 70, oro: 90, tecnologia: 110 }, metricas: { coop: 0, hostil: 0 } },
-    Zion: { recursos: { alimento: 120, oro: 70, tecnologia: 70 }, metricas: { coop: 0, hostil: 0 } },
-    Kallisto: { recursos: { alimento: 90, oro: 90, tecnologia: 90 }, metricas: { coop: 0, hostil: 0 } }
-};
-
-window.addEventListener('DOMContentLoaded', () => {
-    // Recuperar sesión para prevenir pérdidas por desconexión móvil
-    if(localStorage.getItem('sena_sala_id')) {
-        currentSalaId = localStorage.getItem('sena_sala_id');
-        currentImperio = localStorage.getItem('sena_imperio');
-        currentRol = localStorage.getItem('sena_rol');
-        currentPlayerName = localStorage.getItem('sena_nombre');
-        
-        document.getElementById('input-sala-id').value = currentSalaId;
-        document.getElementById('input-player-name').value = currentPlayerName;
+// ==========================================
+// CONTROL DE NAVEGACIÓN DE PANTALLAS
+// ==========================================
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
     }
-
-    const params = new URLSearchParams(window.location.search);
-    const salaParam = params.get('sala');
-    if (salaParam) document.getElementById('input-sala-id').value = salaParam;
-    
-    setupListeners();
-});
-
-function setupListeners() {
-    document.getElementById('btn-create-host').addEventListener('click', crearSalaHost);
-    document.getElementById('btn-join-player').addEventListener('click', unirseJugador);
-    document.getElementById('btn-start-game').addEventListener('click', iniciarPartidaHost);
-    document.getElementById('btn-submit-action').addEventListener('click', registrarAccionEquipo);
-    document.getElementById('btn-restart').addEventListener('click', () => {
-        localStorage.clear();
-        window.location.href = window.location.origin + window.location.pathname;
-    });
 }
 
-// =========================================================================
-// MOTOR ANFITRIÓN (PROFESOR)
-// =========================================================================
-async function crearSalaHost() {
-    isHost = true;
-    currentSalaId = "SENA-" + Math.floor(100 + Math.random() * 899);
+// ==========================================
+// LÓGICA DEL PROFESOR (HOST)
+// ==========================================
+async function crearNuevaSala() {
+    const numRandom = Math.floor(100 + Math.random() * 900);
+    currentSalaId = `SENA-${numRandom}`;
     
-    const estructuraSala = {
-        id_sala: currentSalaId,
-        estado_global: {
-            fase_actual: "LOBBY",
-            ronda_index: 0,
-            timestamp_limite: 0,
-            evento_actual: "Esperando inicio oficial de la simulación geopolítica."
-        },
-        imperios: JSON.parse(JSON.stringify(IMPERIOS_INICIALES))
+    const salaInicial = {
+        salaId: currentSalaId,
+        estado: "esperando",
+        fase: "Espera de Conexiones",
+        tiempo: 240,
+        eventoActual: "Esperando estabilización del mapa geopolítico continental.",
+        jugadores: {},
+        accionesEon: {}
     };
 
-    await setDoc(doc(db, "salas", currentSalaId), estructuraSala);
-    document.getElementById('host-sala-display').innerText = currentSalaId;
-    
-    const qrUrl = `${window.location.origin}${window.location.pathname}?sala=${currentSalaId}`;
-    document.getElementById('qrcode-container').innerHTML = "";
-    new QRCode(document.getElementById('qrcode-container'), { text: qrUrl, width: 140, height: 140 });
+    try {
+        await setDoc(doc(db, "salas", currentSalaId), salaInicial);
+        document.getElementById('host-sala-display').innerText = currentSalaId;
+        
+        // Generar Código QR Dinámico
+        const qrContainer = document.getElementById('qrcode-container');
+        qrContainer.innerHTML = "";
+        new QRCode(qrContainer, {
+            text: window.location.href + `?sala=${currentSalaId}`,
+            width: 160,
+            height: 160
+        });
 
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-host').classList.add('active');
-    sincronizarSalaRealtime(currentSalaId);
-}
-
-function iniciarPartidaHost() {
-    document.getElementById('btn-start-game').style.display = "none";
-    ejecutarEonHost(0);
-}
-
-async function ejecutarEonHost(indexRonda) {
-    if (indexRonda >= EVENTOS_EONES.length) {
-        await updateDoc(doc(db, "salas", currentSalaId), { "estado_global.fase_actual": "TERMINADO" });
-        return;
+        switchScreen('screen-host');
+        escucharSala(currentSalaId, true);
+    } catch (error) {
+        console.error("Error al crear la sala en Firebase: ", error);
+        alert("Error de conexión. Verifica las reglas de tu Firebase.");
     }
-
-    const evento = EVENTOS_EONES[indexRonda];
-    const timestampLimite = Date.now() + (240 * 1000); // 4 minutos exactos a futuro
-
-    await updateDoc(doc(db, "salas", currentSalaId), {
-        "estado_global.fase_actual": "JUGANDO",
-        "estado_global.ronda_index": indexRonda,
-        "estado_global.timestamp_limite": timestampLimite,
-        "estado_global.evento_actual": `${evento.titulo}: ${evento.desc}`
-    });
-
-    ejecutarRelojLocal(timestampLimite, () => {
-        procesarTransicionEon(indexRonda);
-    });
 }
 
-async function procesarTransicionEon(indexRonda) {
-    const salaRef = doc(db, "salas", currentSalaId);
-    const ev = EVENTOS_EONES[indexRonda];
-    const updates = {};
-
-    // Resolución matemática pura en backend simulada de forma segura por el host
-    for (const imp of Object.keys(IMPERIOS_INICIALES)) {
-        const factorRuido = Math.floor(Math.random() * 15);
-        updates[`imperios.${imp}.recursos.${ev.penalizacion}`] = increment(ev.cantidad + factorRuido);
-    }
-    await updateDoc(salaRef, updates);
-    ejecutarEonHost(indexRonda + 1);
-}
-
-// =========================================================================
-// MOTOR ESTUDIANTE (MÓVIL DISCRETO)
-// =========================================================================
+// ==========================================
+// LÓGICA DEL ESTUDIANTE (JUGADOR)
+// ==========================================
 async function unirseJugador() {
     const salaInput = document.getElementById('input-sala-id').value.trim().toUpperCase();
     const nameInput = document.getElementById('input-player-name').value.trim();
-    
-    if(!salaInput || !nameInput) {
-        alert("Campos incompletos."); 
+    const imperioSelect = document.getElementById('select-imperio').value;
+    const rolSelect = document.getElementById('select-rol').value;
+
+    if (!salaInput || !nameInput) {
+        alert("Por favor completa el código de sala y tu nombre.");
         return;
     }
 
     currentSalaId = salaInput;
     currentPlayerName = nameInput;
-    currentImperio = document.getElementById('select-imperio').value;
-    currentRol = document.getElementById('select-rol').value;
+    currentImperio = imperioSelect;
+    currentRol = rolSelect;
 
-    // Preservar datos en almacenamiento local del terminal
-    localStorage.setItem('sena_sala_id', currentSalaId);
-    localStorage.setItem('sena_nombre', currentPlayerName);
-    localStorage.setItem('sena_imperio', currentImperio);
-    localStorage.setItem('sena_rol', currentRol);
-
+    // Actualizar visualmente la cabecera del estudiante
     document.getElementById('player-name-display').innerText = currentPlayerName;
     document.getElementById('player-imperio-display').innerText = `Imperio de ${currentImperio}`;
     document.getElementById('player-rol-display').innerText = currentRol;
 
-    inyectarConsolaOptimizadaRol(currentRol);
-    
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-player').classList.add('active');
-    sincronizarSalaRealtime(currentSalaId);
+    switchScreen('screen-player');
+    inyectarMecanicasRol(currentRol);
+    escucharSala(currentSalaId, false);
 }
 
-function inyectarConsolaOptimizadaRol(rol) {
+// Inyección de opciones dinámicas según el Rol del Alumno
+function inyectarMecanicasRol(rol) {
     const container = document.getElementById('role-mechanic-container');
     container.innerHTML = "";
 
-    // Eliminados Sliders táctiles problemáticos por botones e inputs de paso numérico directo
-    if(rol === "Emperador") {
-        container.innerHTML = `<label>Línea Geopolítica:</label>
-        <select id="action-input"><option value="coop">Alianza Integral Internacional</option><option value="hostil">Hostigamiento Militar y Cierre</option></select>`;
-    } else if(rol === "Tesorero") {
-        container.innerHTML = `<label>Inversión Pública en Alimentos (Elegir Unidad):</label>
-        <select id="action-input"><option value="coop">Invertir 40% de Reservas de Oro</option><option value="hostil">Retener Capitales (Austeridad)</option></select>`;
-    } else if(rol === "Diplomatico") {
-        container.innerHTML = `<label>Estrategia Exterior:</label>
-        <select id="action-input"><option value="coop">Firmar Tratado Multilateral</option><option value="hostil">Pacto Secreto de Exclusividad</option></select>`;
+    const selector = document.createElement('select');
+    selector.id = "player-action-select";
+    selector.className = "custom-select-game";
+
+    let opciones = [];
+    if (rol === "Emperador") {
+        opciones = ["Firmar Tratado de Paz Absoluta", "Declaración de Hostilidad Preventiva", "Decreto de Autarquía Continental"];
+    } else if (rol === "Tesorero") {
+        opciones = ["Inversión Estructural en Almacenes", "Subsidiar Canastas de Alimento", "Emitir Bonos de Emergencia Oro"];
+    } else if (rol === "Diplomatico") {
+        opciones = ["Establecer Alianza Comercial Bilateral", "Enviar Delegación de Paz", "Negociar Apertura de Fronteras"];
+    } else if (rol === "Estratega") {
+        opciones = ["Ejecutar Sabotaje Silencioso", "Reforzar Guarniciones Fronterizas", "Desplegar Patrullas de Reconocimiento"];
     } else {
-        container.innerHTML = `<label>Operación de Contingencia:</label>
-        <select id="action-input"><option value="coop">Desplegar Ayuda Humanitaria</option><option value="hostil">Ejecutar Sabotaje Silencioso</option></select>`;
+        opciones = ["Asesoría Logística Avanzada", "Auditoría de Recursos Críticos"];
+    }
+
+    opciones.forEach(opc => {
+        const o = document.createElement('option');
+        o.value = opc;
+        o.innerText = opc;
+        selector.appendChild(o);
+    });
+
+    container.appendChild(selector);
+}
+
+// Enviar la Acción a Firebase (El botón que fallaba)
+async function confirmarAccionEon() {
+    const actionSelect = document.getElementById('player-action-select');
+    if (!actionSelect) return;
+    
+    const accionElegida = actionSelect.value;
+    const btn = document.getElementById('btn-submit-action');
+    
+    try {
+        btn.disabled = true;
+        btn.innerText = "⏳ Transmitiendo Orden...";
+
+        const salaRef = doc(db, "salas", currentSalaId);
+        const updates = {};
+        updates[`accionesEon.${currentImperio}_${currentRol}`] = {
+            jugador: currentPlayerName,
+            accion: accionElegida,
+            timestamp: new Date().toISOString()
+        };
+
+        await updateDoc(salaRef, updates);
+        btn.innerText = "✅ Orden Confirmada de Forma Segura";
+        btn.classList.add('btn-locked');
+    } catch (e) {
+        console.error("Error al transmitir la orden: ", e);
+        alert("Error al enviar acción. Verifica tu internet o las reglas de Firebase.");
+        btn.disabled = false;
+        btn.innerText = "🔒 Confirmar Acción del Eón";
     }
 }
 
-async function registrarAccionEquipo() {
-    const btn = document.getElementById('btn-submit-action');
-    btn.disabled = true;
-    btn.innerText = "Enviado a Ministros ✔️";
-    btn.style.backgroundColor = "var(--success)";
+// ==========================================
+// RECEPTOR EN TIEMPO REAL (SNAPSHOTS)
+// ==========================================
+function escucharSala(salaId, isHost) {
+    if (salaListener) salaListener();
 
-    const decision = document.getElementById('action-input').value;
-    const salaRef = doc(db, "salas", currentSalaId);
-    
-    // Incremento atómico directo corregido para el SDK v10 libre de bugs de referencia
-    const nodoMetrica = `imperios.${currentImperio}.metricas.${decision}`;
-    await updateDoc(salaRef, { [nodoMetrica]: increment(1) });
-}
-
-// =========================================================================
-// SINCRONIZACIÓN REACTIVA Y LÓGICA DE TRABAJO (onSnapshot Único)
-// =========================================================================
-function sincronizarSalaRealtime(salaId) {
-    onSnapshot(doc(db, "salas", salaId), (snapshot) => {
+    salaListener = onSnapshot(doc(db, "salas", salaId), (snapshot) => {
         if (!snapshot.exists()) return;
         const data = snapshot.data();
-        const est = data.estado_global;
 
-        // Gestión asíncrona del reloj compartido
-        if (est.timestamp_limite > 0) {
-            ejecutarRelojLocal(est.timestamp_limite, null);
-        }
-
-        if (!isHost) {
-            document.getElementById('event-player-info').innerText = est.evento_actual;
-            const impData = data.imperios[currentImperio];
-            document.getElementById('res-alimento').innerText = Math.max(0, impData.recursos.alimento);
-            document.getElementById('res-oro').innerText = Math.max(0, impData.recursos.oro);
-            document.getElementById('res-tecnologia').innerText = Math.max(0, impData.recursos.tecnologia);
-
-            if (btnEnviadoYFaseAbierta(est.fase_actual)) {
-                const btn = document.getElementById('btn-submit-action');
-                btn.disabled = false;
-                btn.innerText = "🔒 Confirmar Acción del Eón";
-                btn.style.backgroundColor = "var(--primary)";
-            }
+        if (isHost) {
+            actualizarPantallaProfesor(data);
         } else {
-            document.getElementById('host-current-fase').innerText = `Eón en Curso: ${est.ronda_index + 1} / 6`;
-            document.getElementById('host-event-text').innerText = est.evento_actual;
-            
-            for (const imp of Object.keys(data.imperios)) {
-                const im = data.imperios[imp];
-                document.getElementById(`card-${imp}`).innerHTML = `<h3>🏛️ Reinos de ${imp}</h3>
-                <p>🌾 Alimento: <strong>${Math.max(0, im.recursos.alimento)}</strong></p>
-                <p>🪙 Oro: <strong>${Math.max(0, im.recursos.oro)}</strong></p>
-                <p>⚔️ Tecnología: <strong>${Math.max(0, im.recursos.tecnologia)}</strong></p>`;
-            }
-        }
-
-        if (est.fase_actual === "TERMINADO") {
-            clearInterval(localTimer);
-            procesarDebriefingFinal(data.imperios);
+            actualizarPantallaEstudiante(data);
         }
     });
 }
 
-function btnEnviadoYFaseAbierta(fase) {
-    return fase === "JUGANDO" && document.getElementById('btn-submit-action').disabled;
-}
+function actualizarPantallaProfesor(data) {
+    document.getElementById('host-timer').innerText = formatearTiempo(data.tiempo);
+    document.getElementById('host-current-fase').innerText = `Fase: ${data.fase}`;
+    document.getElementById('host-event-text').innerText = data.eventoActual;
 
-// =========================================================================
-// SISTEMA AUTOMÁTICO REVOLUCIONARIO DE REFLEXIÓN INTERACTIVA
-// =========================================================================
-function procesarDebriefingFinal(imperios) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen-debriefing').classList.add('active');
-
-    const rankingList = document.getElementById('ranking-list');
-    const insightsContainer = document.getElementById('insights-container');
-    rankingList.innerHTML = "";
-    insightsContainer.innerHTML = "";
-
-    let totalCoop = 0;
-    let totalHostil = 0;
-
-    const arrCalculados = Object.keys(imperios).map(key => {
-        const imp = imperios[key];
-        const calculoBienestar = Math.max(0, Math.floor((imp.recursos.alimento * 0.4) + (imp.recursos.oro * 0.3) + (imp.recursos.tecnologia * 0.3)));
-        
-        totalCoop += imp.metricas.coop || 0;
-        totalHostil += imp.metricas.hostil || 0;
-
-        return { nombre: key, score: calculoBienestar };
-    });
-
-    arrCalculados.sort((a,b) => b.score - a.score);
-
-    arrCalculados.forEach((item, index) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${index + 1}° Lugar: ${item.nombre}</strong> — Balance Integral: ${item.score} Puntos de Estabilidad.`;
-        rankingList.appendChild(li);
-    });
-
-    // Diagnóstico Pedagógico basado en métricas analíticas del comportamiento del aula
-    let HTMLInsight = "";
-    if (totalHostil > totalCoop) {
-        HTMLInsight = `<div class="insight-item"><strong>⚠️ Paradoja de los Bienes Comunes (Tragedia de las Decisiones):</strong> Se detectaron ${totalHostil} acciones de carácter hostil/retención frente a un pobre ${totalCoop} de intentos de negociación colectiva.</div>
-        <div class="insight-item"><strong>📌 Análisis del Liderazgo:</strong> El aula operó bajo el sesgo del individualismo estratégico. A corto plazo, algunos imperios acumularon recursos, pero al llegar el Eón VI (Gran Glaciación), la falta de redes de apoyo mutuo generó un desplome masivo de indicadores de supervivencia. El egocentrismo geopolítico aceleró el colapso.</div>`;
-    } else {
-        HTMLInsight = `<div class="insight-item"><strong>🤝 Triunfo de la Cooperación Compleja:</strong> El grupo sumó un total de ${totalCoop} decisiones de coordinación bilateral, superando los incidentes agresivos.</div>
-        <div class="insight-item"><strong>📌 Análisis del Liderazgo:</strong> Los estudiantes desarrollaron dinámicas de escucha y pensamiento a largo plazo. Al sacrificar pequeños márgenes de ganancia inmediata en favor de tratados estables, lograron mitigar los impactos negativos de las plagas y bloqueos globales. Una victoria clara en negociación y resolución de conflictos.</div>`;
-    }
-
-    insightsContainer.innerHTML = HTMLInsight;
-}
-
-// =========================================================================
-// UTILIDADES DEL CRONÓMETRO CLIENTE-SERVIDOR SIN ESCRITURA CONSTANTE
-// =========================================================================
-function ejecutarRelojLocal(timestampTarget, callbackTermino) {
-    clearInterval(localTimer);
+    // Mostrar qué imperios ya enviaron acciones
+    const acciones = data.accionesEon || {};
+    const listaImperios = ["Aethelgard", "Ophir", "Vulcania", "Zion", "Kallisto"];
     
-    localTimer = setInterval(() => {
-        const delta = Math.floor((timestampTarget - Date.now()) / 1000);
-        
-        if (delta <= 0) {
-            clearInterval(localTimer);
-            document.getElementById('host-timer').innerText = "00:00";
-            if(!isHost) document.getElementById('player-timer').innerText = "00:00";
-            if (callbackTermino) callbackTermino();
-        } else {
-            const min = Math.floor(delta / 60).toString().padStart(2, '0');
-            const seg = (delta % 60).toString().padStart(2, '0');
-            const strTiempo = `${min}:${seg}`;
-            
-            document.getElementById('host-timer').innerText = strTiempo;
-            if(!isHost) document.getElementById('player-timer').innerText = strTiempo;
+    listaImperios.forEach(imp => {
+        const card = document.getElementById(`card-${imp}`);
+        if (card) {
+            // Verificar si algún rol de ese imperio ya ejecutó acción
+            const rolesActivos = Object.keys(acciones).filter(k => k.startsWith(imp));
+            if (rolesActivos.length > 0) {
+                card.className = "imperio-card ready-glow";
+                card.querySelector('p, .sync-status').innerText = `⚡ ${rolesActivos.length} Órdenes Listas`;
+            } else {
+                card.className = "imperio-card";
+                card.querySelector('p, .sync-status').innerText = "💤 Esperando Decisiones...";
+            }
         }
-    }, 1000);
+    });
 }
+
+function actualizarPantallaEstudiante(data) {
+    document.getElementById('player-timer').innerText = formatearTiempo(data.tiempo);
+    document.getElementById('event-player-info').innerText = data.eventoActual;
+
+    // Reiniciar botón si el profesor cambia de fase o eón
+    const btn = document.getElementById('btn-submit-action');
+    if (data.fase === "Procesamiento de Datos") {
+        btn.disabled = true;
+        btn.innerText = "🚫 Eón Bloqueado - Profesor Evaluando Impacto";
+    }
+}
+
+function formatearTiempo(segundos) {
+    const mins = Math.floor(segundos / 60);
+    const secs = segundos % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ==========================================
+// ASIGNACIÓN DE ENVENTOS DE INTERFAZ
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById('btn-create-host').addEventListener('click', crearNuevaSala);
+    document.getElementById('btn-join-player').addEventListener('click', unirseJugador);
+    document.getElementById('btn-submit-action').addEventListener('click', confirmarAccionEon);
+    
+    // Auto-completar sala si viene en el enlace QR
+    const urlParams = new URLSearchParams(window.location.search);
+    const salaUrl = urlParams.get('sala');
+    if (salaUrl) {
+        document.getElementById('input-sala-id').value = salaUrl;
+    }
+});
