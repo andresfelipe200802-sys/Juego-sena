@@ -21,6 +21,16 @@ let currentPlayerName = "";
 let currentImperio = "";
 let currentRol = "";
 let salaListener = null;
+let timerInterval = null; // Controla el reloj del Profesor
+
+// Eventos que se lanzarán automáticamente en cada Eón
+const eventosEon = [
+    "Eón I: Plaga de Langostas. El suministro de alimentos se reduce severamente a escala continental.",
+    "Eón II: Fiebre del Oro. Descubren yacimientos compartidos en las fronteras. La tensión comercial aumenta.",
+    "Eón III: Revolución del Vapor. La tecnología avanza, pero exige inversión inmediata de los forjadores.",
+    "Eón IV: Crisis Climática. Heladas destruyen almacenes. Se requiere diplomacia para redistribuir recursos."
+];
+let eonActualIndex = 0;
 
 // ==========================================
 // CONTROL DE NAVEGACIÓN DE PANTALLAS
@@ -44,7 +54,7 @@ async function crearNuevaSala() {
         salaId: currentSalaId,
         estado: "esperando",
         fase: "Espera de Conexiones",
-        tiempo: 240,
+        tiempo: 240, // 4 minutos en segundos
         eventoActual: "Esperando estabilización del mapa geopolítico continental.",
         jugadores: {},
         accionesEon: {}
@@ -71,6 +81,76 @@ async function crearNuevaSala() {
     }
 }
 
+// 🔥 FUNCIÓN QUE ACTIVA LA SIMULACIÓN Y ARRANCA EL RELOJ
+async function iniciarSimulacion() {
+    if (!currentSalaId) return;
+    
+    const btnStart = document.getElementById('btn-start-game');
+    btnStart.disabled = true;
+    btnStart.innerText = "⚡ Simulación En Progreso";
+
+    try {
+        const salaRef = doc(db, "salas", currentSalaId);
+        
+        // Actualizar estado en Firebase
+        await updateDoc(salaRef, {
+            estado: "jugando",
+            fase: "Fase de Toma de Decisiones",
+            eventoActual: eventosEon[eonActualIndex]
+        });
+
+        // Arrancar el temporizador local en la pantalla del Profesor
+        let tiempoRestante = 240;
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(async () => {
+            tiempoRestante--;
+            
+            // Actualizar el tiempo visible en la pantalla del Profesor
+            document.getElementById('host-timer').innerText = formatearTiempo(tiempoRestante);
+            
+            // Cada 5 segundos sincroniza el tiempo en Firebase para que los alumnos lo vean en su cel
+            if (tiempoRestante % 5 === 0 && tiempoRestante > 0) {
+                await updateDoc(salaRef, { tiempo: tiempoRestante });
+            }
+
+            // Al acabarse el tiempo del Eón
+            if (tiempoRestante <= 0) {
+                clearInterval(timerInterval);
+                await avanzarDeEon();
+            }
+        }, 1000);
+
+    } catch (error) {
+        console.error("Error al iniciar simulación: ", error);
+        btnStart.disabled = false;
+        btnStart.innerText = "🚀 Iniciar Simulación";
+    }
+}
+
+// Controlar el cambio de eones automáticamente
+async function avanzarDeEon() {
+    eonActualIndex++;
+    const salaRef = doc(db, "salas", currentSalaId);
+
+    if (eonActualIndex < eventosEon.length) {
+        // Siguiente ronda
+        await updateDoc(salaRef, {
+            tiempo: 240,
+            fase: "Fase de Toma de Decisiones",
+            eventoActual: eventosEon[eonActualIndex],
+            accionesEon: {} // Limpia las acciones del eón anterior
+        });
+        iniciarSimulacion(); // Reinicia el reloj para el nuevo eón
+    } else {
+        // Fin del juego, manda a todos a la pantalla de informe
+        await updateDoc(salaRef, {
+            estado: "finalizado",
+            fase: "Simulación Concluida"
+        });
+    }
+}
+
 // ==========================================
 // LÓGICA DEL ESTUDIANTE (JUGADOR)
 // ==========================================
@@ -90,7 +170,6 @@ async function unirseJugador() {
     currentImperio = imperioSelect;
     currentRol = rolSelect;
 
-    // Actualizar visualmente la cabecera del estudiante
     document.getElementById('player-name-display').innerText = currentPlayerName;
     document.getElementById('player-imperio-display').innerText = `Imperio de ${currentImperio}`;
     document.getElementById('player-rol-display').innerText = currentRol;
@@ -100,7 +179,6 @@ async function unirseJugador() {
     escucharSala(currentSalaId, false);
 }
 
-// Inyección de opciones dinámicas según el Rol del Alumno
 function inyectarMecanicasRol(rol) {
     const container = document.getElementById('role-mechanic-container');
     container.innerHTML = "";
@@ -132,7 +210,6 @@ function inyectarMecanicasRol(rol) {
     container.appendChild(selector);
 }
 
-// Enviar la Acción a Firebase (El botón que fallaba)
 async function confirmarAccionEon() {
     const actionSelect = document.getElementById('player-action-select');
     if (!actionSelect) return;
@@ -153,11 +230,11 @@ async function confirmarAccionEon() {
         };
 
         await updateDoc(salaRef, updates);
-        btn.innerText = "✅ Orden Confirmada de Forma Segura";
-        btn.classList.add('btn-locked');
+        btn.innerText = "✅ Orden Confirmada";
+        btn.style.backgroundColor = "#28a745";
     } catch (e) {
-        console.error("Error al transmitir la orden: ", e);
-        alert("Error al enviar acción. Verifica tu internet o las reglas de Firebase.");
+        console.error(e);
+        alert("Error al enviar acción.");
         btn.disabled = false;
         btn.innerText = "🔒 Confirmar Acción del Eón";
     }
@@ -182,39 +259,44 @@ function escucharSala(salaId, isHost) {
 }
 
 function actualizarPantallaProfesor(data) {
-    document.getElementById('host-timer').innerText = formatearTiempo(data.tiempo);
+    // El host maneja su propio intervalo para fluidez, pero sincroniza fases
     document.getElementById('host-current-fase').innerText = `Fase: ${data.fase}`;
     document.getElementById('host-event-text').innerText = data.eventoActual;
 
-    // Mostrar qué imperios ya enviaron acciones
     const acciones = data.accionesEon || {};
     const listaImperios = ["Aethelgard", "Ophir", "Vulcania", "Zion", "Kallisto"];
     
     listaImperios.forEach(imp => {
         const card = document.getElementById(`card-${imp}`);
         if (card) {
-            // Verificar si algún rol de ese imperio ya ejecutó acción
             const rolesActivos = Object.keys(acciones).filter(k => k.startsWith(imp));
             if (rolesActivos.length > 0) {
-                card.className = "imperio-card ready-glow";
-                card.querySelector('p, .sync-status').innerText = `⚡ ${rolesActivos.length} Órdenes Listas`;
+                card.style.borderColor = "#28a745";
+                card.querySelector('.sync-status').innerText = `⚡ ${rolesActivos.length} Órdenes Listas`;
             } else {
-                card.className = "imperio-card";
-                card.querySelector('p, .sync-status').innerText = "💤 Esperando Decisiones...";
+                card.style.borderColor = "rgba(255,255,255,0.1)";
+                card.querySelector('.sync-status').innerText = "💤 Esperando Decisiones...";
             }
         }
     });
 }
 
 function actualizarPantallaEstudiante(data) {
+    // Sincronizar el temporizador en el celular del alumno
     document.getElementById('player-timer').innerText = formatearTiempo(data.tiempo);
     document.getElementById('event-player-info').innerText = data.eventoActual;
 
-    // Reiniciar botón si el profesor cambia de fase o eón
+    // Si el profesor cambia el eón, restaurar el botón de acción
     const btn = document.getElementById('btn-submit-action');
-    if (data.fase === "Procesamiento de Datos") {
-        btn.disabled = true;
-        btn.innerText = "🚫 Eón Bloqueado - Profesor Evaluando Impacto";
+    if (data.fase === "Fase de Toma de Decisiones" && btn.disabled && btn.innerText === "✅ Orden Confirmada") {
+        btn.disabled = false;
+        btn.innerText = "🔒 Confirmar Acción del Eón";
+        btn.style.backgroundColor = ""; 
+    }
+
+    // Si el juego llega a su fin, saltar a la pantalla final
+    if (data.estado === "finalizado") {
+        switchScreen('screen-debriefing');
     }
 }
 
@@ -225,14 +307,15 @@ function formatearTiempo(segundos) {
 }
 
 // ==========================================
-// ASIGNACIÓN DE ENVENTOS DE INTERFAZ
+// ASIGNACIÓN DE EVENTOS DE INTERFAZ
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('btn-create-host').addEventListener('click', crearNuevaSala);
+    document.getElementById('btn-start-game').addEventListener('click', iniciarSimulacion);
     document.getElementById('btn-join-player').addEventListener('click', unirseJugador);
     document.getElementById('btn-submit-action').addEventListener('click', confirmarAccionEon);
     
-    // Auto-completar sala si viene en el enlace QR
+    // Auto-completar sala desde enlace QR
     const urlParams = new URLSearchParams(window.location.search);
     const salaUrl = urlParams.get('sala');
     if (salaUrl) {
