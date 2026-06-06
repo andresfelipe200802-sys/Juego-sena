@@ -3,142 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ecos del Trono - SENA</title>
+    <meta name="description" content="Ecos del Trono — Simulador de Alta Diplomacia y Estrategia para SENA">
+    <title>Ecos del Trono — SENA</title>
     <link rel="stylesheet" href="index.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
+    <!-- Toast container para notificaciones -->
+    <div id="toast-container" role="status" aria-live="polite"></div>
+ 
     <div id="app">
-        <section id="screen-auth" class="screen active">
+ 
+        <!-- ======== PANTALLA DE ACCESO ======== -->
+        <section id="screen-auth" class="screen active" aria-label="Pantalla de acceso">
             <div class="card intro-card">
-                <div class="animated-bg"></div>
                 <h1>🏛️ Ecos del Trono</h1>
-                <p class="subtitle">Simulador de Alta Diplomacia y Estrategia - SENA</p>
-                <hr class="glow-hr">
-                
+                <p class="subtitle">Simulador de Alta Diplomacia y Estrategia — SENA</p>
+                <hr class="glow-hr" aria-hidden="true">
+ 
                 <div class="auth-modes">
+                    <!-- Panel Profesor -->
                     <div class="auth-box professor-box">
                         <h3>👨‍🏫 Panel del Profesor</h3>
-                        <button id="btn-create-host" class="btn-primary pulse-effect">Crear Nueva Sala</button>
+                        <button id="btn-create-host" class="btn-primary pulse-effect" type="button">
+                            Crear Nueva Sala
+                        </button>
                     </div>
-                    
+ 
+                    <!-- Panel Estudiante -->
                     <div class="auth-box student-box">
                         <h3>🛡️ Acceso Estudiante</h3>
-                        <input type="text" id="input-sala-id" placeholder="Código de Sala (ej: SENA-123)" maxlength="8" autocomplete="off">
-                        <input type="text" id="input-player-name" placeholder="Tu Nombre o Alias" maxlength="15" autocomplete="off">
-                        
-                        <label for="select-imperio">Selecciona tu Imperio:</label>
-                        <select id="select-imperio">
-                            <option value="Aethelgard">Aethelgard (Científicos)</option>
-                            <option value="Ophir">Ophir (Comerciantes)</option>
-                            <option value="Vulcania">Vulcania (Forjadores)</option>
-                            <option value="Zion">Zion (Místicos)</option>
-                            <option value="Kallisto">Kallisto (Estrategas)</option>
+ 
+                        <label for="input-sala-id">Código de Sala</label>
+                        <input
+                            type="text"
+                            id="input-sala-id"
+                            placeholder="Ej: SENA-123"
+                            maxlength="8"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                        >
+ 
+                        <label for="input-player-name">Tu Nombre o Alias</label>
+                        <input
+                            type="text"
+                            id="input-player-name"
+                            placeholder="Máx. 15 caracteres"
+                            maxlength="15"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+ 
+                        <label for="select-imperio">Imperio</label>
+                        <select id="select-imperio" aria-label="Selecciona tu Imperio">
+                            <option value="Aethelgard">⚗️ Aethelgard (Científicos)</option>
+                            <option value="Ophir">💎 Ophir (Comerciantes)</option>
+                            <option value="Vulcania">🔥 Vulcania (Forjadores)</option>
+                            <option value="Zion">🌿 Zion (Místicos)</option>
+                            <option value="Kallisto">🗡️ Kallisto (Estrategas)</option>
                         </select>
-
-                        <label for="select-rol">Rol Institucional:</label>
-                        <select id="select-rol">
-                            <option value="Emperador">👑 Emperador (Decisión Final)</option>
-                            <option value="Tesorero">💰 Tesorero (Gestión de Recursos)</option>
-                            <option value="Diplomatico">🤝 Diplomático (Alianzas)</option>
-                            <option value="Estratega">⚔️ Estratega (Seguridad)</option>
-                            <option value="Espia">👁️ Espía (Inteligencia)</option>
-                            <option value="Consejero">🧩 Consejero (Lógica)</option>
+ 
+                        <label for="select-rol">Rol Institucional</label>
+                        <select id="select-rol" aria-label="Selecciona tu Rol">
+                            <option value="Emperador">👑 Emperador — Decisión Final</option>
+                            <option value="Tesorero">💰 Tesorero — Gestión de Recursos</option>
+                            <option value="Diplomatico">🤝 Diplomático — Alianzas</option>
+                            <option value="Estratega">⚔️ Estratega — Seguridad</option>
+                            <option value="Espia">👁️ Espía — Inteligencia</option>
+                            <option value="Consejero">🧩 Consejero — Lógica</option>
                         </select>
-                        
-                        <button id="btn-join-player" class="btn-secondary">Ingresar al Imperio</button>
+ 
+                        <button id="btn-join-player" class="btn-secondary" type="button">
+                            Ingresar al Imperio
+                        </button>
                     </div>
                 </div>
             </div>
         </section>
-
-        <section id="screen-host" class="screen">
+ 
+        <!-- ======== PANTALLA DEL PROFESOR ======== -->
+        <section id="screen-host" class="screen" aria-label="Panel del profesor">
             <div class="host-container">
-                <div class="host-sidebar">
-                    <h2>Sala: <span id="host-sala-display" class="highlight">---</span></h2>
-                    <div id="qrcode-container"></div>
-                    <p class="qr-instruction">Escanea el código QR para ingresar</p>
-                    <hr class="glow-hr">
-                    <div class="timer-box animated-glow">
+ 
+                <!-- Sidebar -->
+                <aside class="host-sidebar">
+                    <h2>Sala</h2>
+                    <span id="host-sala-display" class="highlight">---</span>
+ 
+                    <div id="qrcode-container" role="img" aria-label="Código QR de acceso a la sala"></div>
+                    <p class="qr-instruction">Escanea para unirte</p>
+ 
+                    <hr class="glow-hr" aria-hidden="true">
+ 
+                    <div class="timer-box" role="timer" aria-live="polite" aria-label="Tiempo del Eón">
                         <h3>Tiempo del Eón</h3>
                         <div id="host-timer" class="timer animate-pulse">04:00</div>
                         <p id="host-current-fase">Fase: Esperando Conexiones</p>
                     </div>
-                    <button id="btn-start-game" class="btn-success pulse-effect">🚀 Iniciar Simulación</button>
-                    <button id="btn-next-eon" class="btn-primary pulse-effect" style="margin-top: 10px; display: none; background-color: #007bff; width: 100%;">⏭️ Avanzar de Eón</button>
-                </div>
-
-                <div class="host-main">
-                    <div class="event-banner card alert-flash">
+ 
+                    <button id="btn-start-game" class="btn-success pulse-effect" type="button">
+                        🚀 Iniciar Simulación
+                    </button>
+                    <button
+                        id="btn-next-eon"
+                        class="btn-primary pulse-effect"
+                        type="button"
+                        style="margin-top: 12px; display: none;"
+                        aria-label="Avanzar al siguiente Eón"
+                    >
+                        ⏭️ Avanzar de Eón
+                    </button>
+                </aside>
+ 
+                <!-- Main Content -->
+                <main class="host-main">
+                    <div class="event-banner card" role="region" aria-label="Situación geopolítica actual">
                         <h3>📜 Situación Geopolítica Continental</h3>
                         <p id="host-event-text">Esperando que el mapa geopolítico se estabilice para la asignación de recursos.</p>
                     </div>
-                    
-                    <div class="imperios-grid">
-                        <div class="imperio-card" id="card-Aethelgard"><h3>Aethelgard</h3><div class="sync-status">Sincronizando...</div></div>
-                        <div class="imperio-card" id="card-Ophir"><h3>Ophir</h3><div class="sync-status">Sincronizando...</div></div>
-                        <div class="imperio-card" id="card-Vulcania"><h3>Vulcania</h3><div class="sync-status">Sincronizando...</div></div>
-                        <div class="imperio-card" id="card-Zion"><h3>Zion</h3><div class="sync-status">Sincronizando...</div></div>
-                        <div class="imperio-card" id="card-Kallisto"><h3>Kallisto</h3><div class="sync-status">Sincronizando...</div></div>
+ 
+                    <div class="imperios-grid" role="list" aria-label="Estado de los imperios">
+                        <div class="imperio-card" id="card-Aethelgard" role="listitem" aria-label="Imperio Aethelgard">
+                            <h3>⚗️ Aethelgard</h3>
+                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
+                        </div>
+                        <div class="imperio-card" id="card-Ophir" role="listitem" aria-label="Imperio Ophir">
+                            <h3>💎 Ophir</h3>
+                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
+                        </div>
+                        <div class="imperio-card" id="card-Vulcania" role="listitem" aria-label="Imperio Vulcania">
+                            <h3>🔥 Vulcania</h3>
+                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
+                        </div>
+                        <div class="imperio-card" id="card-Zion" role="listitem" aria-label="Imperio Zion">
+                            <h3>🌿 Zion</h3>
+                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
+                        </div>
+                        <div class="imperio-card" id="card-Kallisto" role="listitem" aria-label="Imperio Kallisto">
+                            <h3>🗡️ Kallisto</h3>
+                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
+                        </div>
                     </div>
-                </div>
+                </main>
+ 
             </div>
         </section>
-
-        <section id="screen-player" class="screen">
-            <div class="player-header animate-slide">
+ 
+        <!-- ======== PANTALLA DEL ESTUDIANTE ======== -->
+        <section id="screen-player" class="screen" aria-label="Consola del jugador">
+ 
+            <header class="player-header" role="banner">
                 <div>
-                    <h2><span id="player-imperio-display">---</span></h2>
+                    <h2 id="player-imperio-display">---</h2>
                     <span id="player-rol-display" class="role-badge">---</span>
                     <p class="player-subname">Líder: <span id="player-name-display">---</span></p>
                 </div>
-                <div class="player-timer-box">
+                <div class="player-timer-box" role="timer" aria-live="polite" aria-label="Tiempo restante">
                     <span id="player-timer" class="timer-countdown">04:00</span>
                 </div>
-            </div>
-
+            </header>
+ 
             <div class="player-grid">
-                <div class="card panel-recursos state-glow">
+ 
+                <!-- Recursos -->
+                <div class="card panel-recursos" role="region" aria-label="Almacenes reales">
                     <h3>📦 Almacenes Reales</h3>
-                    <div class="resource-item"><span>🌾 Alimento:</span> <strong id="res-alimento" class="counter-animate">80</strong></div>
-                    <div class="resource-item"><span>🪙 Oro:</span> <strong id="res-oro" class="counter-animate">150</strong></div>
-                    <div class="resource-item"><span>⚔️ Tecnología:</span> <strong id="res-tecnologia" class="counter-animate">60</strong></div>
+                    <div class="resource-item">
+                        <span>🌾 Alimento</span>
+                        <strong id="res-alimento" aria-label="Alimento">80</strong>
+                    </div>
+                    <div class="resource-item">
+                        <span>🪙 Oro</span>
+                        <strong id="res-oro" aria-label="Oro">150</strong>
+                    </div>
+                    <div class="resource-item">
+                        <span>⚙️ Tecnología</span>
+                        <strong id="res-tecnologia" aria-label="Tecnología">60</strong>
+                    </div>
                 </div>
-
-                <div class="card panel-accion">
+ 
+                <!-- Acciones -->
+                <div class="card panel-accion" role="region" aria-label="Consola de decisiones">
                     <h3>⚡ Consola de Decisiones</h3>
-                    <p id="event-player-info" class="event-hint-box">Esperando inicio del Eón por el Profesor.</p>
-                    
-                    <label for="player-action-select" style="display:block; margin-top:15px; font-weight:bold; color:#a2a5b9;">Operación de Contingencia:</label>
-                    <div id="role-mechanic-container" class="options-container animate-fade">
-                        </div>
-                    
-                    <button id="btn-submit-action" class="btn-primary action-btn-glow" style="margin-top: 20px; width: 100%;">🔒 Confirmar Acción del Eón</button>
+ 
+                    <div
+                        id="event-player-info"
+                        class="event-hint-box"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        Esperando inicio del Eón por el Profesor.
+                    </div>
+ 
+                    <label for="player-action-select" style="margin-top: 4px;">
+                        Operación de Contingencia
+                    </label>
+                    <div id="role-mechanic-container" class="options-container"></div>
+ 
+                    <button
+                        id="btn-submit-action"
+                        class="btn-gold"
+                        type="button"
+                        style="margin-top: 20px;"
+                        aria-label="Confirmar acción del Eón"
+                    >
+                        🔒 Confirmar Acción del Eón
+                    </button>
                 </div>
+ 
             </div>
         </section>
-
-        <section id="screen-debriefing" class="screen">
-            <div class="card final-card cinematic-in">
+ 
+        <!-- ======== PANTALLA DE CIERRE ======== -->
+        <section id="screen-debriefing" class="screen" aria-label="Informe final">
+            <div class="card final-card" style="max-width: 700px; text-align: center;">
                 <h1>📉 Informe de Sostenibilidad Histórica</h1>
                 <h2>¿Qué aprendimos del ejercicio?</h2>
-                <hr class="glow-hr">
-                
+                <hr class="glow-hr" aria-hidden="true">
+ 
                 <div class="debriefing-grid">
                     <div id="ranking-box" class="sub-panel">
                         <h3>🏆 Índice de Supervivencia</h3>
                         <ol id="ranking-list" class="styled-list">
-                            <li>Ophir - Sostenible (100% supervivencia)</li>
-                            <li>Zion - Estable (85% supervivencia)</li>
-                            <li>Kallisto - Estable (80% supervivencia)</li>
+                            <!-- Poblado dinámicamente por JS -->
                         </ol>
                     </div>
                 </div>
-                <button id="btn-restart" class="btn-secondary" style="margin-top: 25px;" onclick="window.location.reload();">Reiniciar Entorno Académico</button>
+ 
+                <button
+                    id="btn-restart"
+                    class="btn-secondary"
+                    type="button"
+                    style="margin-top: 25px;"
+                    aria-label="Reiniciar entorno académico"
+                >
+                    🔄 Reiniciar Entorno Académico
+                </button>
             </div>
         </section>
-    </div>
+ 
+    </div><!-- #app -->
+ 
     <script type="module" src="index.js"></script>
 </body>
 </html>
