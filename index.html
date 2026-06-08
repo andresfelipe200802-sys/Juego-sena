@@ -3,251 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Ecos del Trono — Simulador de Alta Diplomacia y Estrategia para SENA">
-    <title>Ecos del Trono — SENA</title>
+    <meta name="description" content="Ecos del Trono — Simulador de gobierno y estrategia medieval para el aula">
+    <title>Ecos del Trono — El Reino</title>
     <link rel="stylesheet" href="index.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=IM+Fell+English:ital@0;1&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-    <!-- Toast container para notificaciones -->
-    <div id="toast-container" role="status" aria-live="polite"></div>
  
-    <div id="app">
+<div id="toast-container" role="status" aria-live="polite"></div>
  
-        <!-- ======== PANTALLA DE ACCESO ======== -->
-        <section id="screen-auth" class="screen active" aria-label="Pantalla de acceso">
-            <div class="card intro-card">
-                <h1>🏛️ Ecos del Trono</h1>
-                <p class="subtitle">Simulador de Alta Diplomacia y Estrategia — SENA</p>
+<!-- ============================================================
+     MODAL: ELECCIÓN DE LÍDER (grupal o Rey Temporal)
+     ============================================================ -->
+<div id="modal-election" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-election-title">
+    <div class="modal-box">
+        <div class="modal-warning">⚠️ Momento Decisivo</div>
+        <h2 id="modal-election-title">Elige a tu Líder</h2>
+        <p id="modal-election-desc">El grupo debe votar quién los representará en esta decisión.</p>
+        <div id="vote-grid" class="vote-grid"></div>
+        <div id="vote-result" class="modal-result" style="display:none"></div>
+    </div>
+</div>
+ 
+<!-- ============================================================
+     MODAL: ADVERTENCIA DECISIÓN MULTI-GRUPO (Rey Temporal)
+     ============================================================ -->
+<div id="modal-warning-multi" class="modal-overlay warning-modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+        <span class="warning-icon">⚔️</span>
+        <div class="modal-warning">🔴 Decisión Crítica del Reino</div>
+        <h2 id="modal-warning-title">El destino del reino pende de un hilo</h2>
+        <p id="modal-warning-desc">A continuación vendrá una decisión muy importante sobre el destino del reino. Los grupos involucrados deben elegir a su Rey Temporal, quien tomará la decisión final tras el debate.</p>
+        <button id="btn-warning-ok" class="btn-gold" type="button" style="margin-top:20px;">Entendido — Comenzar Elección</button>
+    </div>
+</div>
+ 
+<div id="app">
+ 
+    <!-- ======== PANTALLA DE ACCESO ======== -->
+    <section id="screen-auth" class="screen active" aria-label="Acceso al reino">
+        <div class="card intro-card">
+            <span class="crown-icon">👑</span>
+            <h1>Ecos del Trono</h1>
+            <p class="subtitle">Simulador de Gobierno Medieval — SENA</p>
+            <hr class="glow-hr" aria-hidden="true">
+ 
+            <div class="auth-modes">
+ 
+                <!-- Profesor -->
+                <div class="auth-box professor-box">
+                    <h3>📜 Mesa del Consejo — Profesor</h3>
+                    <button id="btn-create-host" class="btn-gold" type="button">
+                        ⚜️ Fundar el Reino
+                    </button>
+                </div>
+ 
+                <!-- Estudiante -->
+                <div class="auth-box student-box">
+                    <h3>🛡️ Acceso del Súbdito</h3>
+ 
+                    <label for="input-sala-id">Código del Reino</label>
+                    <input type="text" id="input-sala-id" placeholder="Ej: REINO-427"
+                        maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false">
+ 
+                    <label for="input-player-name">Tu Nombre</label>
+                    <input type="text" id="input-player-name" placeholder="Máx. 15 caracteres"
+                        maxlength="15" autocomplete="off" spellcheck="false">
+ 
+                    <label for="select-grupo">Tu Gremio</label>
+                    <select id="select-grupo" aria-label="Selecciona tu gremio">
+                        <option value="Campesinos">🌾 Campesinos — Productores del reino</option>
+                        <option value="Guardia">⚔️ Guardia Real — Orden y protección</option>
+                        <option value="Herreros">🔨 Herreros — Artesanos y constructores</option>
+                        <option value="Mercaderes">💰 Mercaderes — Comercio y finanzas</option>
+                        <option value="Clerigos">📖 Clérigos — Salud y conocimiento</option>
+                        <option value="Nobles">🏰 Nobles — Gobierno y leyes</option>
+                    </select>
+ 
+                    <button id="btn-join-player" class="btn-secondary" type="button">
+                        Ingresar al Reino
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+ 
+    <!-- ======== PANTALLA DEL PROFESOR ======== -->
+    <section id="screen-host" class="screen" aria-label="Panel del Consejo">
+        <div class="host-container">
+ 
+            <aside class="host-sidebar">
+                <h2>Reino</h2>
+                <span id="host-sala-display" class="highlight">---</span>
+ 
+                <div id="qrcode-container" role="img" aria-label="QR de acceso al reino"></div>
+                <p class="qr-instruction">Escanea para unirte</p>
+ 
                 <hr class="glow-hr" aria-hidden="true">
  
-                <div class="auth-modes">
-                    <!-- Panel Profesor -->
-                    <div class="auth-box professor-box">
-                        <h3>👨‍🏫 Panel del Profesor</h3>
-                        <button id="btn-create-host" class="btn-primary pulse-effect" type="button">
-                            Crear Nueva Sala
-                        </button>
+                <div class="timer-box" role="timer" aria-live="polite">
+                    <h3>Tiempo de Deliberación</h3>
+                    <div id="host-timer" class="timer animate-pulse">02:00</div>
+                    <p id="host-current-fase">Fase: Esperando Súbditos</p>
+                </div>
+ 
+                <!-- Salud del reino -->
+                <div class="kingdom-health">
+                    <h4>🏰 Estado del Reino</h4>
+                    <div class="health-row">
+                        <span class="health-label">🌾 Alimento</span>
+                        <div class="health-bar-wrap"><div class="health-bar food" id="bar-food" style="width:70%"></div></div>
+                        <span class="health-val" id="val-food">70</span>
                     </div>
- 
-                    <!-- Panel Estudiante -->
-                    <div class="auth-box student-box">
-                        <h3>🛡️ Acceso Estudiante</h3>
- 
-                        <label for="input-sala-id">Código de Sala</label>
-                        <input
-                            type="text"
-                            id="input-sala-id"
-                            placeholder="Ej: SENA-123"
-                            maxlength="8"
-                            autocomplete="off"
-                            autocapitalize="characters"
-                            spellcheck="false"
-                        >
- 
-                        <label for="input-player-name">Tu Nombre o Alias</label>
-                        <input
-                            type="text"
-                            id="input-player-name"
-                            placeholder="Máx. 15 caracteres"
-                            maxlength="15"
-                            autocomplete="off"
-                            spellcheck="false"
-                        >
- 
-                        <label for="select-imperio">Imperio</label>
-                        <select id="select-imperio" aria-label="Selecciona tu Imperio">
-                            <option value="Aethelgard">⚗️ Aethelgard (Científicos)</option>
-                            <option value="Ophir">💎 Ophir (Comerciantes)</option>
-                            <option value="Vulcania">🔥 Vulcania (Forjadores)</option>
-                            <option value="Zion">🌿 Zion (Místicos)</option>
-                            <option value="Kallisto">🗡️ Kallisto (Estrategas)</option>
-                        </select>
- 
-                        <label for="select-rol">Rol Institucional</label>
-                        <select id="select-rol" aria-label="Selecciona tu Rol">
-                            <option value="Emperador">👑 Emperador — Decisión Final</option>
-                            <option value="Tesorero">💰 Tesorero — Gestión de Recursos</option>
-                            <option value="Diplomatico">🤝 Diplomático — Alianzas</option>
-                            <option value="Estratega">⚔️ Estratega — Seguridad</option>
-                            <option value="Espia">👁️ Espía — Inteligencia</option>
-                            <option value="Consejero">🧩 Consejero — Lógica</option>
-                        </select>
- 
-                        <button id="btn-join-player" class="btn-secondary" type="button">
-                            Ingresar al Imperio
-                        </button>
+                    <div class="health-row">
+                        <span class="health-label">🪙 Tesoro</span>
+                        <div class="health-bar-wrap"><div class="health-bar gold" id="bar-gold" style="width:60%"></div></div>
+                        <span class="health-val" id="val-gold">60</span>
                     </div>
+                    <div class="health-row">
+                        <span class="health-label">⚔️ Orden</span>
+                        <div class="health-bar-wrap"><div class="health-bar order" id="bar-order" style="width:75%"></div></div>
+                        <span class="health-val" id="val-order">75</span>
+                    </div>
+                    <div class="health-row">
+                        <span class="health-label">💜 Moral</span>
+                        <div class="health-bar-wrap"><div class="health-bar morale" id="bar-morale" style="width:65%"></div></div>
+                        <span class="health-val" id="val-morale">65</span>
+                    </div>
+                </div>
+ 
+                <div class="host-btn-stack">
+                    <button id="btn-start-game" class="btn-success" type="button">🚀 Iniciar Simulación</button>
+                    <button id="btn-next-round" class="btn-primary" type="button" style="display:none">⏭️ Siguiente Situación</button>
+                </div>
+            </aside>
+ 
+            <main class="host-main">
+                <!-- Evento actual -->
+                <div class="event-banner card" role="region" aria-label="Situación actual del reino">
+                    <h3>📜 Situación del Reino</h3>
+                    <p id="host-event-text">El reino aguarda. Cuando el Profesor inicie la simulación, la primera crisis se revelará.</p>
+                    <div id="host-afecta" class="afecta-badge" style="display:none">⚡ Afecta a: <span id="host-afecta-grupos"></span></div>
+                </div>
+ 
+                <!-- Estado de los gremios -->
+                <div class="groups-grid" role="list" aria-label="Estado de los gremios">
+                    <div class="group-card" id="card-Campesinos" role="listitem">
+                        <span class="group-icon">🌾</span>
+                        <h3>Campesinos</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Campesinos">0 / 5 miembros</div>
+                    </div>
+                    <div class="group-card" id="card-Guardia" role="listitem">
+                        <span class="group-icon">⚔️</span>
+                        <h3>Guardia Real</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Guardia">0 / 5 miembros</div>
+                    </div>
+                    <div class="group-card" id="card-Herreros" role="listitem">
+                        <span class="group-icon">🔨</span>
+                        <h3>Herreros</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Herreros">0 / 5 miembros</div>
+                    </div>
+                    <div class="group-card" id="card-Mercaderes" role="listitem">
+                        <span class="group-icon">💰</span>
+                        <h3>Mercaderes</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Mercaderes">0 / 5 miembros</div>
+                    </div>
+                    <div class="group-card" id="card-Clerigos" role="listitem">
+                        <span class="group-icon">📖</span>
+                        <h3>Clérigos</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Clerigos">0 / 5 miembros</div>
+                    </div>
+                    <div class="group-card" id="card-Nobles" role="listitem">
+                        <span class="group-icon">🏰</span>
+                        <h3>Nobles</h3>
+                        <div class="group-status" aria-live="polite">💤 Esperando...</div>
+                        <div class="member-count" id="count-Nobles">0 / 5 miembros</div>
+                    </div>
+                </div>
+            </main>
+ 
+        </div>
+    </section>
+ 
+    <!-- ======== PANTALLA DEL JUGADOR ======== -->
+    <section id="screen-player" class="screen" aria-label="Tu consola de gobierno">
+ 
+        <header class="player-header">
+            <div>
+                <div id="player-group-display" class="player-group-name">---</div>
+                <span id="player-leader-badge" class="player-role-tag" style="display:none">👑 Líder del Gremio</span>
+                <span id="player-member-badge" class="player-role-tag">Miembro</span>
+                <p class="player-subname">⚜️ <span id="player-name-display">---</span></p>
+            </div>
+            <div class="player-timer-wrap" role="timer" aria-live="polite">
+                <span id="player-timer" class="timer-countdown">02:00</span>
+            </div>
+        </header>
+ 
+        <div class="player-grid">
+ 
+            <!-- Estado del reino -->
+            <div class="card panel-kingdom">
+                <h3>🏰 Estado del Reino</h3>
+                <div class="health-row">
+                    <span class="health-label">🌾 Alimento</span>
+                    <div class="health-bar-wrap"><div class="health-bar food" id="p-bar-food" style="width:70%"></div></div>
+                    <span class="health-val" id="p-val-food">70</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">🪙 Tesoro</span>
+                    <div class="health-bar-wrap"><div class="health-bar gold" id="p-bar-gold" style="width:60%"></div></div>
+                    <span class="health-val" id="p-val-gold">60</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">⚔️ Orden</span>
+                    <div class="health-bar-wrap"><div class="health-bar order" id="p-bar-order" style="width:75%"></div></div>
+                    <span class="health-val" id="p-val-order">75</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">💜 Moral</span>
+                    <div class="health-bar-wrap"><div class="health-bar morale" id="p-bar-morale" style="width:65%"></div></div>
+                    <span class="health-val" id="p-val-morale">65</span>
                 </div>
             </div>
-        </section>
  
-        <!-- ======== PANTALLA DEL PROFESOR ======== -->
-        <section id="screen-host" class="screen" aria-label="Panel del profesor">
-            <div class="host-container">
- 
-                <!-- Sidebar -->
-                <aside class="host-sidebar">
-                    <h2>Sala</h2>
-                    <span id="host-sala-display" class="highlight">---</span>
- 
-                    <div id="qrcode-container" role="img" aria-label="Código QR de acceso a la sala"></div>
-                    <p class="qr-instruction">Escanea para unirte</p>
- 
-                    <hr class="glow-hr" aria-hidden="true">
- 
-                    <div class="timer-box" role="timer" aria-live="polite" aria-label="Tiempo del Eón">
-                        <h3>Tiempo del Eón</h3>
-                        <div id="host-timer" class="timer animate-pulse">04:00</div>
-                        <p id="host-current-fase">Fase: Esperando Conexiones</p>
-                    </div>
- 
-                    <button id="btn-start-game" class="btn-success pulse-effect" type="button">
-                        🚀 Iniciar Simulación
-                    </button>
-                    <button
-                        id="btn-next-eon"
-                        class="btn-primary pulse-effect"
-                        type="button"
-                        style="margin-top: 12px; display: none;"
-                        aria-label="Avanzar al siguiente Eón"
-                    >
-                        ⏭️ Avanzar de Eón
-                    </button>
-                </aside>
- 
-                <!-- Main Content -->
-                <main class="host-main">
-                    <div class="event-banner card" role="region" aria-label="Situación geopolítica actual">
-                        <h3>📜 Situación Geopolítica Continental</h3>
-                        <p id="host-event-text">Esperando que el mapa geopolítico se estabilice para la asignación de recursos.</p>
-                    </div>
- 
-                    <div class="imperios-grid" role="list" aria-label="Estado de los imperios">
-                        <div class="imperio-card" id="card-Aethelgard" role="listitem" aria-label="Imperio Aethelgard">
-                            <h3>⚗️ Aethelgard</h3>
-                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
-                        </div>
-                        <div class="imperio-card" id="card-Ophir" role="listitem" aria-label="Imperio Ophir">
-                            <h3>💎 Ophir</h3>
-                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
-                        </div>
-                        <div class="imperio-card" id="card-Vulcania" role="listitem" aria-label="Imperio Vulcania">
-                            <h3>🔥 Vulcania</h3>
-                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
-                        </div>
-                        <div class="imperio-card" id="card-Zion" role="listitem" aria-label="Imperio Zion">
-                            <h3>🌿 Zion</h3>
-                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
-                        </div>
-                        <div class="imperio-card" id="card-Kallisto" role="listitem" aria-label="Imperio Kallisto">
-                            <h3>🗡️ Kallisto</h3>
-                            <div class="sync-status" aria-live="polite">💤 Esperando Decisiones...</div>
-                        </div>
-                    </div>
-                </main>
- 
+            <!-- Chat del gremio -->
+            <div class="card panel-chat">
+                <h3>💬 Sala de Deliberación</h3>
+                <div class="chat-badge" id="chat-group-label">Gremio: ---</div>
+                <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Mensajes del gremio"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." maxlength="120" autocomplete="off">
+                    <button id="btn-send-chat" class="btn-secondary btn-sm" type="button">Enviar</button>
+                </div>
             </div>
-        </section>
  
-        <!-- ======== PANTALLA DEL ESTUDIANTE ======== -->
-        <section id="screen-player" class="screen" aria-label="Consola del jugador">
+            <!-- Decisión -->
+            <div class="card panel-accion" role="region" aria-label="Panel de decisión">
+                <h3>⚡ Decisión del Gremio</h3>
  
-            <header class="player-header" role="banner">
-                <div>
-                    <h2 id="player-imperio-display">---</h2>
-                    <span id="player-rol-display" class="role-badge">---</span>
-                    <p class="player-subname">Líder: <span id="player-name-display">---</span></p>
-                </div>
-                <div class="player-timer-box" role="timer" aria-live="polite" aria-label="Tiempo restante">
-                    <span id="player-timer" class="timer-countdown">04:00</span>
-                </div>
-            </header>
- 
-            <div class="player-grid">
- 
-                <!-- Recursos -->
-                <div class="card panel-recursos" role="region" aria-label="Almacenes reales">
-                    <h3>📦 Almacenes Reales</h3>
-                    <div class="resource-item">
-                        <span>🌾 Alimento</span>
-                        <strong id="res-alimento" aria-label="Alimento">80</strong>
-                    </div>
-                    <div class="resource-item">
-                        <span>🪙 Oro</span>
-                        <strong id="res-oro" aria-label="Oro">150</strong>
-                    </div>
-                    <div class="resource-item">
-                        <span>⚙️ Tecnología</span>
-                        <strong id="res-tecnologia" aria-label="Tecnología">60</strong>
-                    </div>
+                <div id="event-player-info" class="event-hint-box" role="status" aria-live="polite">
+                    Aguarda el inicio de la simulación por parte del Profesor.
                 </div>
  
-                <!-- Acciones -->
-                <div class="card panel-accion" role="region" aria-label="Consola de decisiones">
-                    <h3>⚡ Consola de Decisiones</h3>
+                <div id="consequences-preview" class="consequences-preview" style="display:none"></div>
  
-                    <div
-                        id="event-player-info"
-                        class="event-hint-box"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        Esperando inicio del Eón por el Profesor.
-                    </div>
- 
-                    <label for="player-action-select" style="margin-top: 4px;">
-                        Operación de Contingencia
-                    </label>
-                    <div id="role-mechanic-container" class="options-container"></div>
- 
-                    <button
-                        id="btn-submit-action"
-                        class="btn-gold"
-                        type="button"
-                        style="margin-top: 20px;"
-                        aria-label="Confirmar acción del Eón"
-                    >
-                        🔒 Confirmar Acción del Eón
-                    </button>
+                <div id="leader-note" class="leader-only-note" style="display:none">
+                    👑 Solo el Líder del Gremio puede confirmar la decisión final.
                 </div>
  
-            </div>
-        </section>
+                <div id="options-container" class="options-container"></div>
  
-        <!-- ======== PANTALLA DE CIERRE ======== -->
-        <section id="screen-debriefing" class="screen" aria-label="Informe final">
-            <div class="card final-card" style="max-width: 700px; text-align: center;">
-                <h1>📉 Informe de Sostenibilidad Histórica</h1>
-                <h2>¿Qué aprendimos del ejercicio?</h2>
-                <hr class="glow-hr" aria-hidden="true">
- 
-                <div class="debriefing-grid">
-                    <div id="ranking-box" class="sub-panel">
-                        <h3>🏆 Índice de Supervivencia</h3>
-                        <ol id="ranking-list" class="styled-list">
-                            <!-- Poblado dinámicamente por JS -->
-                        </ol>
-                    </div>
-                </div>
- 
-                <button
-                    id="btn-restart"
-                    class="btn-secondary"
-                    type="button"
-                    style="margin-top: 25px;"
-                    aria-label="Reiniciar entorno académico"
-                >
-                    🔄 Reiniciar Entorno Académico
+                <button id="btn-submit-action" class="btn-gold" type="button" style="margin-top:6px;" disabled>
+                    🔒 Confirmar Decisión Final
                 </button>
             </div>
-        </section>
  
-    </div><!-- #app -->
+        </div>
+    </section>
  
-    <script type="module" src="index.js"></script>
+    <!-- ======== PANTALLA FINAL ======== -->
+    <section id="screen-debriefing" class="screen" aria-label="Informe final del reino">
+        <div class="card" style="max-width:720px;text-align:center;">
+            <h1>📜 Crónica del Reino</h1>
+            <h2>Así gobernaron los gremios de la tierra</h2>
+            <hr class="glow-hr" aria-hidden="true">
+ 
+            <div id="survival-banner" class="survival-banner survived">
+                🏰 El reino sobrevivió — Las decisiones sostuvieron al pueblo
+            </div>
+ 
+            <div id="moraleja-box" class="moraleja-box"></div>
+ 
+            <div id="final-groups-grid" class="final-groups-grid"></div>
+ 
+            <div class="kingdom-health" style="margin-bottom:20px;">
+                <h4>📊 Recursos finales del Reino</h4>
+                <div class="health-row">
+                    <span class="health-label">🌾 Alimento</span>
+                    <div class="health-bar-wrap"><div class="health-bar food" id="f-bar-food" style="width:0%"></div></div>
+                    <span class="health-val" id="f-val-food">0</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">🪙 Tesoro</span>
+                    <div class="health-bar-wrap"><div class="health-bar gold" id="f-bar-gold" style="width:0%"></div></div>
+                    <span class="health-val" id="f-val-gold">0</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">⚔️ Orden</span>
+                    <div class="health-bar-wrap"><div class="health-bar order" id="f-bar-order" style="width:0%"></div></div>
+                    <span class="health-val" id="f-val-order">0</span>
+                </div>
+                <div class="health-row">
+                    <span class="health-label">💜 Moral</span>
+                    <div class="health-bar-wrap"><div class="health-bar morale" id="f-bar-morale" style="width:0%"></div></div>
+                    <span class="health-val" id="f-val-morale">0</span>
+                </div>
+            </div>
+ 
+            <button id="btn-restart" class="btn-secondary" type="button">
+                🔄 Reiniciar Reino
+            </button>
+        </div>
+    </section>
+ 
+</div><!-- #app -->
+ 
+<script type="module" src="index.js"></script>
 </body>
 </html>
