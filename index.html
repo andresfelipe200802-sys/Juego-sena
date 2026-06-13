@@ -12,37 +12,92 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
- 
+
 <div id="toast-container" role="status" aria-live="polite"></div>
- 
+
 <!-- ============================================================
-     MODAL: ELECCIÓN DE LÍDER (grupal o Rey Temporal)
+     MODAL: ELECCION DE LIDER
      ============================================================ -->
 <div id="modal-election" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-election-title">
     <div class="modal-box">
-        <div class="modal-warning">⚠️ Momento Decisivo</div>
-        <h2 id="modal-election-title">Elige a tu Líder</h2>
-        <p id="modal-election-desc">El grupo debe votar quién los representará en esta decisión.</p>
+        <div class="modal-warning">Momento Decisivo</div>
+        <h2 id="modal-election-title">Elige a tu Lider</h2>
+        <p id="modal-election-desc">El grupo debe votar quien los representara en esta decision.</p>
         <div id="vote-grid" class="vote-grid"></div>
         <div id="vote-result" class="modal-result" style="display:none"></div>
     </div>
 </div>
- 
+
 <!-- ============================================================
-     MODAL: ADVERTENCIA DECISIÓN MULTI-GRUPO (Rey Temporal)
+     MODAL: ADVERTENCIA REY TEMPORAL
      ============================================================ -->
 <div id="modal-warning-multi" class="modal-overlay warning-modal" role="dialog" aria-modal="true">
     <div class="modal-box">
         <span class="warning-icon">⚔️</span>
-        <div class="modal-warning">🔴 Decisión Crítica del Reino</div>
+        <div class="modal-warning">🔴 Decision Critica del Reino</div>
         <h2 id="modal-warning-title">El destino del reino pende de un hilo</h2>
-        <p id="modal-warning-desc">A continuación vendrá una decisión muy importante sobre el destino del reino. Los grupos involucrados deben elegir a su Rey Temporal, quien tomará la decisión final tras el debate.</p>
-        <button id="btn-warning-ok" class="btn-gold" type="button" style="margin-top:20px;">Entendido — Comenzar Elección</button>
+        <p id="modal-warning-desc">A continuacion vendra una decision muy importante. Los lideres deben elegir un Rey Temporal.</p>
+        <button id="btn-warning-ok" class="btn-gold" type="button" style="margin-top:20px;">Entendido — Comenzar Eleccion</button>
     </div>
 </div>
- 
+
+<!-- ============================================================
+     CONSEJO REAL — PANTALLA DE DEBATE Y DECISION DEL REY
+     Bloquea la pantalla de todos durante las rondas Rey.
+     ============================================================ -->
+<div id="royal-council-overlay" class="royal-council-overlay" role="dialog" aria-modal="true" aria-label="Consejo Real del Reino">
+    <div class="royal-council-box">
+
+        <!-- Cabecera -->
+        <div class="royal-council-header">
+            <span class="council-icon">👑</span>
+            <h2>Consejo Real del Reino</h2>
+            <p id="council-crisis-subtitle">Crisis global en curso — Todos deben deliberar</p>
+            <div id="council-king-badge" class="king-badge" style="display:none">
+                👑 Tu eres el Rey Temporal — Tu voz decide
+            </div>
+        </div>
+
+        <!-- Texto de la crisis -->
+        <div id="council-crisis-text" class="royal-crisis-text">
+            Esperando crisis...
+        </div>
+
+        <!-- Chat del Consejo -->
+        <div class="royal-council-body">
+            <div id="royal-chat-messages" class="royal-chat-messages" role="log" aria-live="polite"></div>
+            <div class="royal-chat-input-row">
+                <input type="text" id="royal-chat-input" placeholder="Escribe tu argumento al Rey..." maxlength="140" autocomplete="off">
+                <button id="btn-royal-chat-send" class="btn-secondary btn-sm" type="button">Enviar</button>
+            </div>
+        </div>
+
+        <!-- Opciones de decision — solo visibles para el Rey Temporal -->
+        <div id="royal-decision-section" class="royal-decision-section" style="display:none;">
+            <h4>⚔️ Tu Decision como Rey Temporal</h4>
+            <p style="font-size:.8rem;color:var(--text-mid);margin-bottom:10px;font-family:var(--font-lore);font-style:italic;">
+                Escucha a tu Consejo. Cuando estes listo, elige y confirma. No se puede cambiar.
+            </p>
+            <div id="royal-options" class="royal-options"></div>
+        </div>
+
+        <!-- Boton de confirmar — solo el Rey -->
+        <div id="royal-confirm-row" class="royal-confirm-row" style="display:none;">
+            <button id="btn-royal-confirm" class="btn-gold" type="button" disabled>
+                🔒 Selecciona una opcion primero
+            </button>
+        </div>
+
+        <!-- Mensaje para los miembros que no son el Rey -->
+        <div id="member-waiting-msg" class="member-waiting-msg" style="display:none;">
+            Comparte tu punto de vista con el Rey Temporal. El tomara la decision final.
+        </div>
+
+    </div>
+</div>
+
 <div id="app">
- 
+
     <!-- ======== PANTALLA DE ACCESO ======== -->
     <section id="screen-auth" class="screen active" aria-label="Acceso al reino">
         <div class="card intro-card">
@@ -50,67 +105,59 @@
             <h1>Ecos del Trono</h1>
             <p class="subtitle">Simulador de Gobierno Medieval — SENA</p>
             <hr class="glow-hr" aria-hidden="true">
- 
+
             <div class="auth-modes">
- 
-                <!-- Profesor -->
                 <div class="auth-box professor-box">
                     <h3>📜 Mesa del Consejo — Profesor</h3>
-                    <button id="btn-create-host" class="btn-gold" type="button">
-                        ⚜️ Fundar el Reino
-                    </button>
+                    <button id="btn-create-host" class="btn-gold" type="button">⚜️ Fundar el Reino</button>
                 </div>
- 
-                <!-- Estudiante -->
+
                 <div class="auth-box student-box">
-                    <h3>🛡️ Acceso del Súbdito</h3>
- 
-                    <label for="input-sala-id">Código del Reino</label>
+                    <h3>🛡️ Acceso del Subdito</h3>
+
+                    <label for="input-sala-id">Codigo del Reino</label>
                     <input type="text" id="input-sala-id" placeholder="Ej: REINO-427"
                         maxlength="9" autocomplete="off" autocapitalize="characters" spellcheck="false">
- 
+
                     <label for="input-player-name">Tu Nombre</label>
-                    <input type="text" id="input-player-name" placeholder="Máx. 15 caracteres"
+                    <input type="text" id="input-player-name" placeholder="Max. 15 caracteres"
                         maxlength="15" autocomplete="off" spellcheck="false">
- 
+
                     <label for="select-grupo">Tu Gremio</label>
                     <select id="select-grupo" aria-label="Selecciona tu gremio">
                         <option value="Campesinos">🌾 Campesinos — Productores del reino</option>
-                        <option value="Guardia">⚔️ Guardia Real — Orden y protección</option>
+                        <option value="Guardia">⚔️ Guardia Real — Orden y proteccion</option>
                         <option value="Herreros">🔨 Herreros — Artesanos y constructores</option>
                         <option value="Mercaderes">💰 Mercaderes — Comercio y finanzas</option>
-                        <option value="Clerigos">📖 Clérigos — Salud y conocimiento</option>
+                        <option value="Clerigos">📖 Clerigos — Salud y conocimiento</option>
                         <option value="Nobles">🏰 Nobles — Gobierno y leyes</option>
                     </select>
- 
-                    <button id="btn-join-player" class="btn-secondary" type="button">
-                        Ingresar al Reino
-                    </button>
+
+                    <button id="btn-join-player" class="btn-secondary" type="button">Ingresar al Reino</button>
                 </div>
             </div>
         </div>
     </section>
- 
+
     <!-- ======== PANTALLA DEL PROFESOR ======== -->
     <section id="screen-host" class="screen" aria-label="Panel del Consejo">
         <div class="host-container">
- 
+
             <aside class="host-sidebar">
                 <h2>Reino</h2>
                 <span id="host-sala-display" class="highlight">---</span>
- 
+
                 <div id="qrcode-container" role="img" aria-label="QR de acceso al reino"></div>
                 <p class="qr-instruction">Escanea para unirte</p>
- 
+
                 <hr class="glow-hr" aria-hidden="true">
- 
+
                 <div class="timer-box" role="timer" aria-live="polite">
-                    <h3>Tiempo de Deliberación</h3>
+                    <h3>Tiempo de Deliberacion</h3>
                     <div id="host-timer" class="timer animate-pulse">02:00</div>
-                    <p id="host-current-fase">Fase: Esperando Súbditos</p>
+                    <p id="host-current-fase">Fase: Esperando Subditos</p>
                 </div>
- 
-                <!-- Salud del reino -->
+
                 <div class="kingdom-health">
                     <h4>🏰 Estado del Reino</h4>
                     <div class="health-row">
@@ -134,21 +181,24 @@
                         <span class="health-val" id="val-morale">65</span>
                     </div>
                 </div>
- 
+
                 <div class="host-btn-stack">
-                    <button id="btn-start-game" class="btn-success" type="button">🚀 Iniciar Simulación</button>
-                    <button id="btn-next-round" class="btn-primary" type="button" style="display:none">⏭️ Siguiente Situación</button>
+                    <button id="btn-start-game" class="btn-success" type="button">🚀 Iniciar Simulacion</button>
+                    <button id="btn-toggle-situations" class="btn-toggle-situations" type="button" style="display:none">📋 Ver Situaciones</button>
+                    <button id="btn-next-round" class="btn-primary" type="button" style="display:none">⏭️ Siguiente Situacion</button>
                 </div>
             </aside>
- 
+
             <main class="host-main">
-                <!-- Evento actual -->
-                <div class="event-banner card" role="region" aria-label="Situación actual del reino">
-                    <h3>📜 Situación del Reino</h3>
-                    <p id="host-event-text">El reino aguarda. Cuando el Profesor inicie la simulación, la primera crisis se revelará.</p>
-                    <div id="host-afecta" class="afecta-badge" style="display:none">⚡ Afecta a: <span id="host-afecta-grupos"></span></div>
+                <!-- Banner evento -->
+                <div class="event-banner card" role="region" aria-label="Situacion actual del reino">
+                    <h3>📜 Estado de la Ronda</h3>
+                    <p id="host-event-text">El reino aguarda. Cuando el Profesor inicie la simulacion, comenzara la primera ronda.</p>
+                    <div id="host-afecta" class="afecta-badge" style="display:none">
+                        Ronda: <span id="host-afecta-grupos"></span>
+                    </div>
                 </div>
- 
+
                 <!-- Estado de los gremios -->
                 <div class="groups-grid" role="list" aria-label="Estado de los gremios">
                     <div class="group-card" id="card-Campesinos" role="listitem">
@@ -177,7 +227,7 @@
                     </div>
                     <div class="group-card" id="card-Clerigos" role="listitem">
                         <span class="group-icon">📖</span>
-                        <h3>Clérigos</h3>
+                        <h3>Clerigos</h3>
                         <div class="group-status" aria-live="polite">💤 Esperando...</div>
                         <div class="member-count" id="count-Clerigos">0 / 5 miembros</div>
                     </div>
@@ -188,18 +238,26 @@
                         <div class="member-count" id="count-Nobles">0 / 5 miembros</div>
                     </div>
                 </div>
+
+                <!-- Panel situaciones por gremio (toggle profesor) -->
+                <div class="situations-panel" id="situations-panel" style="display:none;" role="region" aria-label="Situaciones actuales por gremio">
+                    <div class="situations-panel-header">
+                        <h3>📋 Situaciones por Gremio — Ronda actual</h3>
+                    </div>
+                    <div id="situations-grid" class="situations-grid"></div>
+                </div>
+
             </main>
- 
         </div>
     </section>
- 
+
     <!-- ======== PANTALLA DEL JUGADOR ======== -->
     <section id="screen-player" class="screen" aria-label="Tu consola de gobierno">
- 
+
         <header class="player-header">
             <div>
                 <div id="player-group-display" class="player-group-name">---</div>
-                <span id="player-leader-badge" class="player-role-tag" style="display:none">👑 Líder del Gremio</span>
+                <span id="player-leader-badge" class="player-role-tag" style="display:none">👑 Lider del Gremio</span>
                 <span id="player-member-badge" class="player-role-tag">Miembro</span>
                 <p class="player-subname">⚜️ <span id="player-name-display">---</span></p>
             </div>
@@ -207,9 +265,9 @@
                 <span id="player-timer" class="timer-countdown">02:00</span>
             </div>
         </header>
- 
+
         <div class="player-grid">
- 
+
             <!-- Estado del reino -->
             <div class="card panel-kingdom">
                 <h3>🏰 Estado del Reino</h3>
@@ -234,57 +292,52 @@
                     <span class="health-val" id="p-val-morale">65</span>
                 </div>
             </div>
- 
+
             <!-- Chat del gremio -->
             <div class="card panel-chat">
-                <h3>💬 Sala de Deliberación</h3>
+                <h3>💬 Sala de Deliberacion</h3>
                 <div class="chat-badge" id="chat-group-label">Gremio: ---</div>
-                <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-label="Mensajes del gremio"></div>
+                <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
                 <div class="chat-input-row">
                     <input type="text" id="chat-input" placeholder="Escribe tu mensaje..." maxlength="120" autocomplete="off">
                     <button id="btn-send-chat" class="btn-secondary btn-sm" type="button">Enviar</button>
                 </div>
             </div>
- 
-            <!-- Decisión -->
-            <div class="card panel-accion" role="region" aria-label="Panel de decisión">
-                <h3>⚡ Decisión del Gremio</h3>
- 
+
+            <!-- Decision -->
+            <div class="card panel-accion" role="region" aria-label="Panel de decision">
+                <h3>⚡ Decision del Gremio</h3>
                 <div id="event-player-info" class="event-hint-box" role="status" aria-live="polite">
-                    Aguarda el inicio de la simulación por parte del Profesor.
+                    Aguarda el inicio de la simulacion por parte del Profesor.
                 </div>
- 
                 <div id="consequences-preview" class="consequences-preview" style="display:none"></div>
- 
                 <div id="leader-note" class="leader-only-note" style="display:none">
-                    👑 Solo el Líder del Gremio puede confirmar la decisión final.
+                    👑 Solo el Lider del Gremio puede confirmar la decision final.
                 </div>
- 
                 <div id="options-container" class="options-container"></div>
- 
                 <button id="btn-submit-action" class="btn-gold" type="button" style="margin-top:6px;" disabled>
-                    🔒 Confirmar Decisión Final
+                    🔒 Confirmar Decision Final
                 </button>
             </div>
- 
+
         </div>
     </section>
- 
+
     <!-- ======== PANTALLA FINAL ======== -->
     <section id="screen-debriefing" class="screen" aria-label="Informe final del reino">
         <div class="card" style="max-width:720px;text-align:center;">
-            <h1>📜 Crónica del Reino</h1>
-            <h2>Así gobernaron los gremios de la tierra</h2>
+            <h1>📜 Cronica del Reino</h1>
+            <h2>Asi gobernaron los gremios de la tierra</h2>
             <hr class="glow-hr" aria-hidden="true">
- 
+
             <div id="survival-banner" class="survival-banner survived">
-                🏰 El reino sobrevivió — Las decisiones sostuvieron al pueblo
+                🏰 El reino sobrevivio — Las decisiones sostuvieron al pueblo
             </div>
- 
+
             <div id="moraleja-box" class="moraleja-box"></div>
- 
+
             <div id="final-groups-grid" class="final-groups-grid"></div>
- 
+
             <div class="kingdom-health" style="margin-bottom:20px;">
                 <h4>📊 Recursos finales del Reino</h4>
                 <div class="health-row">
@@ -308,15 +361,13 @@
                     <span class="health-val" id="f-val-morale">0</span>
                 </div>
             </div>
- 
-            <button id="btn-restart" class="btn-secondary" type="button">
-                🔄 Reiniciar Reino
-            </button>
+
+            <button id="btn-restart" class="btn-secondary" type="button">🔄 Reiniciar Reino</button>
         </div>
     </section>
- 
+
 </div><!-- #app -->
- 
+
 <script type="module" src="index.js"></script>
 </body>
 </html>
