@@ -1147,7 +1147,7 @@ async function crearSala() {
     try {
         await setDoc(doc(db,"salas",salaId), doc0);
         for(const g of GRUPOS) await setDoc(doc(db,"salas",salaId,"chats",g),{mensajes:[]});
-        await setDoc(doc(db,"salas",salaId,"chats","__consejo__"),{mensajes:[]});
+        await setDoc(doc(db,"salas",salaId,"chats","consejo-real"),{mensajes:[]});
         S.salaId=salaId; S.isHost=true;
         document.getElementById("host-sala-display").textContent=salaId;
         const qrc=document.getElementById("qrcode-container"); qrc.innerHTML="";
@@ -1664,7 +1664,7 @@ function abrirConsejoReal(data) {
 
     if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
     _consejoChatListener=onSnapshot(
-        doc(db,"salas",S.salaId,"chats","__consejo__"),
+        doc(db,"salas",S.salaId,"chats","consejo-real"),
         snap=>{ if(!snap.exists()) return; renderConsejoChat(snap.data().mensajes||[]); }
     );
 
@@ -1714,18 +1714,18 @@ async function enviarMensajeConsejo() {
     const esRey=snap.data().reyTemporal===S.playerName;
     const entry={ quien:S.playerName, grupo:S.grupo, texto:san(msg), esRey, timestamp:new Date().toISOString() };
     try {
-        await updateDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:arrayUnion(entry) });
+        await updateDoc(doc(db,"salas",S.salaId,"chats","consejo-real"),{ mensajes:arrayUnion(entry) });
     } catch(e){
-        await setDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:[entry] });
+        await setDoc(doc(db,"salas",S.salaId,"chats","consejo-real"),{ mensajes:[entry] });
     }
 }
 
 async function enviarMensajeSistemaConsejo(texto) {
     const entry={ quien:"SISTEMA", grupo:"", texto, esRey:false, esSystem:true, timestamp:new Date().toISOString() };
     try {
-        await updateDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:arrayUnion(entry) });
+        await updateDoc(doc(db,"salas",S.salaId,"chats","consejo-real"),{ mensajes:arrayUnion(entry) });
     } catch(e){
-        await setDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:[entry] });
+        await setDoc(doc(db,"salas",S.salaId,"chats","consejo-real"),{ mensajes:[entry] });
     }
 }
 
