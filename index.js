@@ -1,6 +1,5 @@
-
 /**
- * ECOS DEL TRONO v2.3 — index.js
+ * ECOS DEL TRONO v3.0 — index.js
  *
  * CAMBIOS PRINCIPALES v4:
  * - 15 rondas totales (2 min c/u = 30 min partida)
@@ -11,13 +10,13 @@
  * - Moraleja + resultado general visible para todos
  * - Re-elección de Rey Temporal opcional en cada ronda Rey
  */
- 
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getFirestore, doc, setDoc, onSnapshot,
     updateDoc, getDoc, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
- 
+
 const firebaseConfig = {
   apiKey: "AIzaSyC2aGcaFnSL-aSp5XvFjb0WTiJFrEWJko0",
   authDomain: "ecos-del-trono.firebaseapp.com",
@@ -27,10 +26,10 @@ const firebaseConfig = {
   appId: "1:916346464912:web:3932c51cc83cfc330d8615",
   measurementId: "G-1EVTFCPC51"
 };
- 
+
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
- 
+
 /* ============================================================
    CONSTANTES
    ============================================================ */
@@ -38,12 +37,12 @@ const GRUPOS = ["Campesinos","Guardia","Herreros","Mercaderes","Clerigos","Noble
 const MAX_POR_GRUPO = 5;
 const TIEMPO_RONDA  = 120; // 2 minutos
 const TOTAL_RONDAS  = 15;
- 
+
 const GRUPO_ICONS = {
     Campesinos:"🌾", Guardia:"⚔️", Herreros:"🔨",
     Mercaderes:"💰", Clerigos:"📖", Nobles:"🏰"
 };
- 
+
 /* ============================================================
    SITUACIONES — 15 RONDAS
    
@@ -60,7 +59,7 @@ const GRUPO_ICONS = {
    efectos de crisis afectan a TODO el reino.
    ============================================================ */
 const RONDAS = [
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 1
     // ══════════════════════════════════════════════════════════
@@ -123,7 +122,7 @@ const RONDAS = [
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 2
     // ══════════════════════════════════════════════════════════
@@ -186,7 +185,7 @@ const RONDAS = [
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 3
     // ══════════════════════════════════════════════════════════
@@ -249,7 +248,7 @@ const RONDAS = [
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 4 — TIPO REY (todos deciden su problema + crisis global)
     // ══════════════════════════════════════════════════════════
@@ -323,7 +322,7 @@ Esta decisión tendrá consecuencias MASIVAS para todos los recursos.`,
             ]
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 5
     // ══════════════════════════════════════════════════════════
@@ -386,7 +385,7 @@ Esta decisión tendrá consecuencias MASIVAS para todos los recursos.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 6
     // ══════════════════════════════════════════════════════════
@@ -449,7 +448,7 @@ Esta decisión tendrá consecuencias MASIVAS para todos los recursos.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 7 — TIPO REY
     // ══════════════════════════════════════════════════════════
@@ -523,7 +522,7 @@ Recuerda: esta decisión afectará TODOS los recursos del reino.`,
             ]
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 8
     // ══════════════════════════════════════════════════════════
@@ -586,7 +585,7 @@ Recuerda: esta decisión afectará TODOS los recursos del reino.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 9
     // ══════════════════════════════════════════════════════════
@@ -649,7 +648,7 @@ Recuerda: esta decisión afectará TODOS los recursos del reino.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 10
     // ══════════════════════════════════════════════════════════
@@ -712,7 +711,7 @@ Recuerda: esta decisión afectará TODOS los recursos del reino.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 11 — TIPO REY
     // ══════════════════════════════════════════════════════════
@@ -786,7 +785,7 @@ Esta es la crisis más costosa hasta ahora.`,
             ]
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 12
     // ══════════════════════════════════════════════════════════
@@ -849,7 +848,7 @@ Esta es la crisis más costosa hasta ahora.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 13
     // ══════════════════════════════════════════════════════════
@@ -912,7 +911,7 @@ Esta es la crisis más costosa hasta ahora.`,
             }
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 14 — TIPO REY (última gran crisis antes del final)
     // ══════════════════════════════════════════════════════════
@@ -987,7 +986,7 @@ Lo que decidan aquí determinará el destino final del reino.`,
             ]
         }
     },
- 
+
     // ══════════════════════════════════════════════════════════
     // RONDA 15 — RONDA FINAL
     // ══════════════════════════════════════════════════════════
@@ -1051,7 +1050,7 @@ Lo que decidan aquí determinará el destino final del reino.`,
         }
     }
 ];
- 
+
 /* ============================================================
    ESTADO GLOBAL
    ============================================================ */
@@ -1069,22 +1068,22 @@ const S = {
     electionDone:   false,
     recursos: { food:70, gold:60, order:75, morale:65 },
 };
- 
+
 let _lastRondaRendered = -1;
 let _lastEleccionKey   = "";
- 
+
 /* ============================================================
    UTILIDADES
    ============================================================ */
 const fmt = s => { const v=Math.max(0,Math.floor(s)); return `${String(Math.floor(v/60)).padStart(2,"0")}:${String(v%60).padStart(2,"0")}`; };
 const san = s => { const d=document.createElement("div"); d.textContent=s; return d.innerHTML; };
- 
+
 function toast(msg, type="info", ms=3500) {
     const c=document.getElementById("toast-container"); if(!c) return;
     const t=document.createElement("div"); t.className=`toast ${type}`; t.textContent=msg; c.appendChild(t);
     setTimeout(()=>{ t.style.opacity="0"; t.style.transform="translateX(18px)"; t.style.transition="all .3s"; setTimeout(()=>t.remove(),310); }, ms);
 }
- 
+
 function setBar(bid, vid, val) {
     const b=document.getElementById(bid), v=document.getElementById(vid);
     const cl=Math.max(0,Math.min(100,Math.round(val)));
@@ -1096,7 +1095,7 @@ function updateBars(r, px) {
     setBar(`${px}bar-order`,`${px}val-order`,r.order);
     setBar(`${px}bar-morale`,`${px}val-morale`,r.morale);
 }
- 
+
 /* ============================================================
    NAVEGACIÓN
    ============================================================ */
@@ -1104,7 +1103,7 @@ function switchScreen(id) {
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById(id)?.classList.add("active");
 }
- 
+
 /* ============================================================
    LISTENERS FIRESTORE
    ============================================================ */
@@ -1112,7 +1111,7 @@ function detachAll() {
     if(S.salaListener){ S.salaListener(); S.salaListener=null; }
     if(S.chatListener){ S.chatListener(); S.chatListener=null; }
 }
- 
+
 function attachSalaListener() {
     if(S.salaListener){ S.salaListener(); S.salaListener=null; }
     S.salaListener = onSnapshot(
@@ -1121,7 +1120,7 @@ function attachSalaListener() {
         err=>{ console.error(err); toast("Conexión perdida.","error"); }
     );
 }
- 
+
 function attachChatListener(grupo) {
     if(S.chatListener){ S.chatListener(); S.chatListener=null; }
     S.chatListener = onSnapshot(
@@ -1129,7 +1128,7 @@ function attachChatListener(grupo) {
         snap=>{ if(!snap.exists()) return; renderChat(snap.data().mensajes||[]); }
     );
 }
- 
+
 /* ============================================================
    CREAR SALA (PROFESOR)
    ============================================================ */
@@ -1148,6 +1147,7 @@ async function crearSala() {
     try {
         await setDoc(doc(db,"salas",salaId), doc0);
         for(const g of GRUPOS) await setDoc(doc(db,"salas",salaId,"chats",g),{mensajes:[]});
+        await setDoc(doc(db,"salas",salaId,"chats","__consejo__"),{mensajes:[]});
         S.salaId=salaId; S.isHost=true;
         document.getElementById("host-sala-display").textContent=salaId;
         const qrc=document.getElementById("qrcode-container"); qrc.innerHTML="";
@@ -1159,7 +1159,7 @@ async function crearSala() {
         btn.disabled=false; btn.textContent="⚜️ Fundar el Reino";
     }
 }
- 
+
 /* ============================================================
    INICIAR / AVANZAR RONDA (PROFESOR)
    ============================================================ */
@@ -1171,7 +1171,7 @@ async function iniciarSimulacion() {
     if(btnN){ btnN.style.display="block"; btnN.disabled=true; }
     await lanzarRonda(0);
 }
- 
+
 async function avanzarRonda() {
     // Verificar que TODOS los grupos hayan decidido
     const snap=await getDoc(doc(db,"salas",S.salaId));
@@ -1181,7 +1181,7 @@ async function avanzarRonda() {
     const gruposRonda=Object.keys(rondaData.grupos);
     const decisiones=data.decisiones||{};
     const faltantes=gruposRonda.filter(g=>!decisiones[g]);
- 
+
     if(faltantes.length>0){
         toast(`Faltan decisiones de: ${faltantes.join(", ")}. Espera que todos decidan.`,"error",5000);
         return;
@@ -1191,7 +1191,7 @@ async function avanzarRonda() {
         toast("Falta la decisión de crisis del Rey Temporal.","error",4000);
         return;
     }
- 
+
     limpiarTimer();
     const btnN=document.getElementById("btn-next-round");
     if(btnN) btnN.disabled=true;
@@ -1200,7 +1200,7 @@ async function avanzarRonda() {
     await lanzarRonda(siguiente);
     if(btnN) btnN.disabled=false;
 }
- 
+
 async function lanzarRonda(idx) {
     limpiarTimer();
     S.rondaActual=idx;
@@ -1223,7 +1223,7 @@ async function lanzarRonda(idx) {
         if(t<=0){ limpiarTimer(); toast("⏰ Tiempo agotado. Revisa decisiones antes de avanzar.","info",4000); }
     },1000);
 }
- 
+
 async function finalizarSimulacion() {
     limpiarTimer();
     const snap=await getDoc(doc(db,"salas",S.salaId));
@@ -1231,9 +1231,9 @@ async function finalizarSimulacion() {
     const survived=r.food>15&&r.gold>10&&r.order>15&&r.morale>15;
     await updateDoc(doc(db,"salas",S.salaId),{ estado:"finalizado", ronda:TOTAL_RONDAS, survived });
 }
- 
+
 function limpiarTimer(){ clearInterval(S.timerInterval); S.timerInterval=null; }
- 
+
 /* ============================================================
    UNIRSE (ESTUDIANTE)
    ============================================================ */
@@ -1258,7 +1258,7 @@ async function unirseJugador() {
     document.getElementById("chat-group-label").textContent=`Gremio: ${grupo}`;
     switchScreen("screen-player"); attachSalaListener(); attachChatListener(grupo);
 }
- 
+
 /* ============================================================
    ACTUALIZAR HOST
    ============================================================ */
@@ -1266,17 +1266,20 @@ function actualizarHost(data) {
     const fase=document.getElementById("host-current-fase");
     if(fase) fase.textContent=`Ronda ${(data.ronda||0)+1} / ${TOTAL_RONDAS}`;
     if(data.recursos){ S.recursos=data.recursos; updateBars(data.recursos,""); }
- 
+
     const sit=data.situacion;
     if(sit){
+        const esRey=sit.tipo==="rey";
         const evEl=document.getElementById("host-event-text");
-        if(evEl) evEl.textContent=`Todos los gremios deliberan. ${sit.tipo==="rey"?"⚠️ Ronda de Rey Temporal activa.":""}`;
+        if(evEl) evEl.textContent=`Todos los gremios deliberan simultaneamente.${esRey?" ⚠️ Ronda de Rey Temporal activa: hay crisis global.":""}`;
         const afEl=document.getElementById("host-afecta");
         const afGr=document.getElementById("host-afecta-grupos");
-        if(afEl&&afGr){ afEl.style.display="inline-flex"; afGr.textContent=GRUPOS.join(", "); }
+        if(afEl&&afGr){ afEl.style.display="inline-flex"; afGr.textContent=esRey?"Rey Temporal + crisis global":"Todos los gremios"; }
+        const btnToggle=document.getElementById("btn-toggle-situations");
+        if(btnToggle) btnToggle.style.display="block";
+        renderSituacionesHost(sit, data.decisiones||{});
     }
- 
-    // Conteo miembros y estado
+
     const jug=data.jugadores||{};
     const dec=data.decisiones||{};
     GRUPOS.forEach(g=>{
@@ -1286,11 +1289,10 @@ function actualizarHost(data) {
         const n=Object.values(jug).filter(j=>j.grupo===g).length;
         if(countEl) countEl.textContent=`${n} / ${MAX_POR_GRUPO} miembros`;
         if(!card) return;
-        if(dec[g]){ card.classList.add("ready"); if(statusEl) statusEl.textContent="✅ Decisión tomada"; }
+        if(dec[g]){ card.classList.add("ready"); if(statusEl) statusEl.textContent="✅ Decision tomada"; }
         else { card.classList.remove("ready"); if(statusEl) statusEl.textContent=n>0?"🗣️ Deliberando...":"💤 Esperando..."; }
     });
- 
-    // Botón avanzar: habilitado solo si todos los grupos de la ronda han decidido
+
     const btnN=document.getElementById("btn-next-round");
     if(btnN&&sit){
         const gruposRonda=Object.keys(sit.grupos||{});
@@ -1298,12 +1300,50 @@ function actualizarHost(data) {
         const crisisOk=sit.tipo!=="rey"||!!data.decisionCrisis;
         const todoListo=faltantes.length===0&&crisisOk;
         btnN.disabled=!todoListo;
-        btnN.title=todoListo?"¡Todos decidieron! Puedes avanzar.":`Faltan: ${faltantes.join(", ")}`;
+        btnN.title=todoListo?"Todos decidieron. Puedes avanzar.":`Faltan: ${faltantes.join(", ")}`;
     }
- 
+
     if(data.estado==="finalizado") mostrarDebriefingHost(data);
 }
- 
+
+/* ============================================================
+   PANEL DE SITUACIONES (PROFESOR) — toggle ver/ocultar
+   ============================================================ */
+let _situacionesPanelVisible = false;
+
+function toggleSituacionesPanel() {
+    const panel=document.getElementById("situations-panel");
+    const btn  =document.getElementById("btn-toggle-situations");
+    if(!panel||!btn) return;
+    _situacionesPanelVisible=!_situacionesPanelVisible;
+    panel.style.display=_situacionesPanelVisible?"block":"none";
+    btn.textContent=_situacionesPanelVisible?"📋 Ocultar Situaciones":"📋 Ver Situaciones";
+}
+
+function renderSituacionesHost(sit, decisiones) {
+    const grid=document.getElementById("situations-grid");
+    if(!grid) return;
+    grid.innerHTML=GRUPOS.map(g=>{
+        const gs=sit.grupos?.[g];
+        if(!gs) return "";
+        const dec=decisiones[g];
+        const icon=GRUPO_ICONS[g];
+        const opcionesHTML=gs.opciones.map((op,i)=>{
+            const elegida=dec&&dec.opcionIndex===i;
+            return `<div class="situation-option${elegida?" chosen":""}">${icon} ${san(op.texto)}</div>`;
+        }).join("");
+        return `<div class="situation-card">
+            <div class="situation-card-header">
+                <span class="situation-group-icon">${icon}</span>
+                <span class="situation-group-name">${san(g)}</span>
+            </div>
+            <div class="situation-title">${san(gs.titulo)}</div>
+            <div class="situation-text">${san(gs.texto)}</div>
+            <div class="situation-options">${opcionesHTML}</div>
+        </div>`;
+    }).join("");
+}
+
 /* ============================================================
    ACTUALIZAR JUGADOR
    ============================================================ */
@@ -1311,25 +1351,25 @@ function actualizarPlayer(data) {
     const tEl=document.getElementById("player-timer");
     if(tEl){ tEl.textContent=fmt(data.tiempo||0); tEl.classList.toggle("urgent",(data.tiempo||0)<=30); }
     if(data.recursos){ S.recursos=data.recursos; updateBars(data.recursos,"p-"); }
- 
+
     // Liderazgo
     const lideres=data.lideres||{};
     S.isLeader=lideres[S.grupo]===S.playerName;
     document.getElementById("player-leader-badge").style.display=S.isLeader?"inline-block":"none";
     document.getElementById("player-member-badge").style.display=S.isLeader?"none":"inline-block";
- 
+
     const sit=data.situacion;
     if(!sit) return;
- 
+
     const ronda=data.ronda??0;
- 
+
     // Nueva ronda: re-renderizar
     if(ronda!==_lastRondaRendered){
         _lastRondaRendered=ronda;
         S.selectedOption=null; S.electionDone=false; _lastEleccionKey="";
         renderSituacionJugador(sit, data);
     }
- 
+
     // Elección de líder pendiente
     if(data.eleccionPendiente&&!S.electionDone){
         const key=`lider-${ronda}`;
@@ -1339,7 +1379,7 @@ function actualizarPlayer(data) {
             else S.electionDone=true;
         }
     }
- 
+
     // Elección de Rey Temporal pendiente (rondas rey, después de que los líderes están elegidos)
     if(sit.tipo==="rey"&&data.eleccionReyPendiente&&!data.reyTemporal){
         const keyRey=`rey-${ronda}`;
@@ -1352,10 +1392,17 @@ function actualizarPlayer(data) {
             }
         }
     }
- 
+
+    // Abrir o cerrar el Consejo Real segun flag de Firestore
+    if(data.consejoBloqueado && data.reyTemporal) {
+        abrirConsejoReal(data);
+    } else if(!data.consejoBloqueado) {
+        cerrarConsejoReal();
+    }
+
     if(data.estado==="finalizado"){ limpiarTimer(); detachAll(); mostrarDebriefingPlayer(data); switchScreen("screen-debriefing"); }
 }
- 
+
 /* ============================================================
    RENDER SITUACIÓN DEL JUGADOR
    ============================================================ */
@@ -1366,20 +1413,20 @@ function renderSituacionJugador(sit, data) {
     const prevCont=document.getElementById("consequences-preview");
     const lnote   =document.getElementById("leader-note");
     const btnS    =document.getElementById("btn-submit-action");
- 
+
     prevCont.style.display="none";
     optsCont.innerHTML="";
- 
+
     if(!grupoSit){
         infoBox.textContent="Tu gremio no tiene situación en esta ronda. Observa y participa en el chat.";
         if(lnote) lnote.style.display="none";
         if(btnS) btnS.disabled=true;
         return;
     }
- 
+
     infoBox.innerHTML=`<strong>${san(grupoSit.titulo)}</strong><br><br>${san(grupoSit.texto).replace(/\n/g,"<br>")}`;
     infoBox.classList.add("active");
- 
+
     // Si ya decidió
     if(data.decisiones?.[S.grupo]){
         const d=data.decisiones[S.grupo];
@@ -1388,7 +1435,7 @@ function renderSituacionJugador(sit, data) {
         if(btnS){ btnS.disabled=true; btnS.textContent="✅ Decisión Confirmada"; btnS.style.backgroundColor="var(--emerald)"; }
         return;
     }
- 
+
     // Opciones
     grupoSit.opciones.forEach((op,i)=>{
         const b=document.createElement("button");
@@ -1396,11 +1443,11 @@ function renderSituacionJugador(sit, data) {
         b.addEventListener("click",()=>seleccionarOpcion(i,grupoSit,b));
         optsCont.appendChild(b);
     });
- 
+
     if(lnote) lnote.style.display="block";
     if(btnS){ btnS.disabled=true; btnS.textContent="🔒 Confirmar Decisión Final"; btnS.style.backgroundColor=""; btnS.style.borderColor=""; }
 }
- 
+
 function seleccionarOpcion(i, sit, btnEl) {
     if(!S.isLeader){ toast("Solo el Líder del gremio puede seleccionar la decisión.","info"); return; }
     S.selectedOption=i;
@@ -1416,7 +1463,7 @@ function seleccionarOpcion(i, sit, btnEl) {
     const btnS=document.getElementById("btn-submit-action");
     if(btnS) btnS.disabled=false;
 }
- 
+
 /* ============================================================
    CONFIRMAR DECISIÓN
    ============================================================ */
@@ -1453,7 +1500,7 @@ async function confirmarDecision() {
         btnS.style.backgroundColor="";
     }
 }
- 
+
 /* ============================================================
    ELECCIÓN DE LÍDER
    ============================================================ */
@@ -1476,7 +1523,7 @@ async function mostrarEleccionLider(data) {
     });
     modal.classList.add("active");
 }
- 
+
 async function emitirVotoLider(candidato, total) {
     await updateDoc(doc(db,"salas",S.salaId),{ [`votos.${S.grupo}.${S.playerName}`]: candidato });
     const snap=await getDoc(doc(db,"salas",S.salaId));
@@ -1489,38 +1536,43 @@ async function emitirVotoLider(candidato, total) {
         mostrarResultadoEleccion(ganador[0]);
     } else { toast("Voto registrado. Esperando más votos...","info"); }
 }
- 
+
 /* ============================================================
-   ADVERTENCIA + ELECCIÓN DE REY TEMPORAL
+   ADVERTENCIA REY TEMPORAL
    ============================================================ */
 function mostrarAdvertenciaRey(sit) {
     const wM=document.getElementById("modal-warning-multi");
     document.getElementById("modal-warning-title").textContent=sit.crisis?.titulo||"Crisis Global";
     document.getElementById("modal-warning-desc").textContent=
-        `A continuación vendrá una decisión muy importante sobre el destino del reino. Los líderes de todos los gremios deben elegir un Rey Temporal que tomará la decisión final tras el debate.`;
+        "A continuacion vendra una decision muy importante sobre el destino del reino. "+
+        "Los lideres de todos los gremios elegiran un Rey Temporal. "+
+        "Todos debatiran en el Consejo Real antes de que el Rey decida.";
     wM.classList.add("active");
 }
- 
+
+/* ============================================================
+   ELECCION DE REY TEMPORAL
+   ============================================================ */
 async function iniciarEleccionReyTemporal() {
     document.getElementById("modal-warning-multi").classList.remove("active");
     const snap=await getDoc(doc(db,"salas",S.salaId));
     const data=snap.data();
     const lideres=data.lideres||{};
     const candidatos=GRUPOS.map(g=>lideres[g]).filter(Boolean);
-    if(!candidatos.length){ toast("Aún no hay líderes elegidos.","info"); return; }
- 
+    if(!candidatos.length){ toast("Los lideres aun no han sido elegidos.","info"); return; }
+
     const modal=document.getElementById("modal-election");
-    document.getElementById("modal-election-title").textContent="👑 Elige al Rey Temporal";
+    document.getElementById("modal-election-title").textContent="Elige al Rey Temporal";
     document.getElementById("modal-election-desc").textContent=
-        `Solo los Líderes de gremio votan. El Rey Temporal decidirá la crisis global del reino.`;
+        "Solo los Lideres de gremio votan. El Rey Temporal abrira el Consejo Real para debatir y luego decidira.";
     document.getElementById("vote-result").style.display="none";
     const grid=document.getElementById("vote-grid");
     grid.style.display=""; grid.innerHTML="";
- 
+
     const soyLider=lideres[S.grupo]===S.playerName;
     candidatos.forEach(c=>{
         const b=document.createElement("button"); b.type="button"; b.className="vote-btn";
-        b.innerHTML=`<span class="vote-crown">👑</span> ${san(c)}`;
+        b.innerHTML=`<span class="vote-crown">&#x1F451;</span> ${san(c)}`;
         if(!soyLider){ b.disabled=true; b.style.opacity=".4"; }
         else b.addEventListener("click",()=>emitirVotoRey(c, candidatos.length));
         grid.appendChild(b);
@@ -1528,12 +1580,12 @@ async function iniciarEleccionReyTemporal() {
     if(!soyLider){
         const p=document.createElement("p");
         p.style.cssText="color:var(--text-mid);font-size:.82rem;text-align:center;margin-top:12px;font-style:italic;";
-        p.textContent="Solo los Líderes de gremio pueden votar aquí.";
+        p.textContent="Solo los Lideres de gremio pueden votar aqui.";
         grid.appendChild(p);
     }
     modal.classList.add("active");
 }
- 
+
 async function emitirVotoRey(candidato, total) {
     const snap=await getDoc(doc(db,"salas",S.salaId));
     const lideres=snap.data().lideres||{};
@@ -1544,64 +1596,160 @@ async function emitirVotoRey(candidato, total) {
     const conteo={}; Object.values(votos).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
     const ganador=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];
     if(ganador&&ganador[1]>=Math.ceil(total/2)){
-        await updateDoc(doc(db,"salas",S.salaId),{ reyTemporal:ganador[0], eleccionReyPendiente:false });
+        // Activar consejoBloqueado para abrir el overlay en todos los jugadores
+        await updateDoc(doc(db,"salas",S.salaId),{
+            reyTemporal:ganador[0],
+            eleccionReyPendiente:false,
+            consejoBloqueado:true,
+        });
         S.isLeader=ganador[0]===S.playerName;
         mostrarResultadoEleccion(ganador[0]);
-        // Si soy el Rey, mostrar decisión de crisis
-        if(S.isLeader) setTimeout(()=>mostrarDecisionCrisis(), 2800);
     } else { toast("Voto registrado.","info"); }
 }
- 
+
 function mostrarResultadoEleccion(ganador) {
     document.getElementById("vote-grid").style.display="none";
     const result=document.getElementById("vote-result");
     result.style.display="block";
-    result.innerHTML=`<span class="crown-big">👑</span><h3>${san(ganador)} elegido</h3><p>Guiará las decisiones de este momento.</p>`;
-    setTimeout(()=>cerrarModales(), 2600);
+    result.innerHTML=`<span class="crown-big">&#x1F451;</span><h3>${san(ganador)} elegido Rey Temporal</h3><p>El Consejo Real se abrira en un momento para todos.</p>`;
+    setTimeout(()=>cerrarModales(), 2400);
 }
- 
+
 /* ============================================================
-   DECISIÓN DE CRISIS (REY TEMPORAL)
+   CONSEJO REAL — OVERLAY DE DEBATE Y DECISION
+   Se abre via Firestore (consejoBloqueado:true) para TODOS.
+   El Rey ve y puede elegir opciones; los demas solo chatean.
    ============================================================ */
-async function mostrarDecisionCrisis() {
-    const snap=await getDoc(doc(db,"salas",S.salaId));
-    const sit=snap.data().situacion;
+let _consejoChatListener = null;
+
+function abrirConsejoReal(data) {
+    const sit=data.situacion;
     if(!sit?.crisis) return;
-    const modal=document.getElementById("modal-election");
-    document.getElementById("modal-election-title").textContent=sit.crisis.titulo;
-    document.getElementById("modal-election-desc").innerHTML=sit.crisis.texto.replace(/\n/g,"<br>");
-    document.getElementById("vote-result").style.display="none";
-    const grid=document.getElementById("vote-grid");
-    grid.style.display=""; grid.innerHTML="";
-    sit.crisis.opciones.forEach((op,i)=>{
-        const b=document.createElement("button"); b.type="button"; b.className="vote-btn";
-        b.innerHTML=`<span class="vote-crown">${i===0?"⚔️":i===1?"🤝":"🏰"}</span> ${san(op.texto)}`;
-        b.addEventListener("click",()=>confirmarDecisionCrisis(i, op, sit.crisis.opciones.length));
-        grid.appendChild(b);
-    });
-    modal.classList.add("active");
+    const overlay=document.getElementById("royal-council-overlay");
+    if(!overlay||overlay.classList.contains("active")) return;
+
+    document.getElementById("council-crisis-text").textContent=sit.crisis.texto;
+    const soyRey=data.reyTemporal===S.playerName;
+    const badge=document.getElementById("council-king-badge");
+    badge.style.display=soyRey?"inline-flex":"none";
+    document.getElementById("council-crisis-subtitle").textContent=
+        "Rey Temporal: "+san(data.reyTemporal||"?")+". Debatan y luego el Rey decide.";
+
+    const decSection=document.getElementById("royal-decision-section");
+    const confirmRow=document.getElementById("royal-confirm-row");
+    const waitMsg   =document.getElementById("member-waiting-msg");
+    const optsDiv   =document.getElementById("royal-options");
+
+    if(soyRey){
+        decSection.style.display="block";
+        confirmRow.style.display="block";
+        waitMsg.style.display="none";
+        optsDiv.innerHTML="";
+        S.selectedOption=null;
+        sit.crisis.opciones.forEach((op,i)=>{
+            const b=document.createElement("button"); b.type="button"; b.className="royal-option-btn";
+            b.textContent=op.texto; b.dataset.index=i;
+            b.addEventListener("click",()=>seleccionarOpcionCrisis(i,b));
+            optsDiv.appendChild(b);
+        });
+        const btnConf=document.getElementById("btn-royal-confirm");
+        if(btnConf){ btnConf.disabled=true; btnConf.textContent="Selecciona una opcion primero"; }
+    } else {
+        decSection.style.display="none";
+        confirmRow.style.display="none";
+        waitMsg.style.display="block";
+    }
+
+    overlay.classList.add("active");
+
+    if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
+    _consejoChatListener=onSnapshot(
+        doc(db,"salas",S.salaId,"chats","__consejo__"),
+        snap=>{ if(!snap.exists()) return; renderConsejoChat(snap.data().mensajes||[]); }
+    );
+
+    enviarMensajeSistemaConsejo(S.playerName+" ("+S.grupo+") entro al Consejo Real.");
 }
- 
-async function confirmarDecisionCrisis(i, op, _total) {
+
+function seleccionarOpcionCrisis(i, btnEl) {
+    S.selectedOption=i;
+    document.querySelectorAll(".royal-option-btn").forEach(b=>b.classList.remove("selected"));
+    btnEl.classList.add("selected");
+    const btnConf=document.getElementById("btn-royal-confirm");
+    if(btnConf){ btnConf.disabled=false; btnConf.textContent="Confirmar Decision del Reino"; }
+}
+
+async function confirmarDecisionCrisis() {
+    if(S.selectedOption===null){ toast("Selecciona una opcion primero.","error"); return; }
     const snap=await getDoc(doc(db,"salas",S.salaId));
-    const r=snap.data().recursos;
+    const data=snap.data();
+    if(data.reyTemporal!==S.playerName){ toast("Solo el Rey Temporal puede confirmar.","info"); return; }
+    const sit=data.situacion;
+    const op=sit.crisis.opciones[S.selectedOption];
     const ef=op.efectos;
+    const r=data.recursos;
     const nuevosR={
         food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
         gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
         order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
         morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
     };
+    const btnConf=document.getElementById("btn-royal-confirm");
+    if(btnConf){ btnConf.disabled=true; btnConf.textContent="Sellando decision..."; }
+    await enviarMensajeSistemaConsejo("El Rey Temporal "+san(S.playerName)+" ha decidido: "+san(op.texto));
     await updateDoc(doc(db,"salas",S.salaId),{
-        decisionCrisis:{ jugador:S.playerName, opcionIndex:i, opcionTexto:op.texto, efectos:ef, timestamp:new Date().toISOString() },
+        decisionCrisis:{ jugador:S.playerName, opcionIndex:S.selectedOption, opcionTexto:op.texto, efectos:ef, timestamp:new Date().toISOString() },
         recursos:nuevosR,
+        consejoBloqueado:false,
     });
-    cerrarModales();
-    toast("Decisión de crisis registrada por el Rey Temporal.","success",4000);
+    toast("Decision del Consejo Real registrada.","success",4000);
 }
- 
+
+async function enviarMensajeConsejo() {
+    const input=document.getElementById("royal-chat-input");
+    const msg=input?.value.trim();
+    if(!msg||!S.salaId) return;
+    input.value="";
+    const snap=await getDoc(doc(db,"salas",S.salaId));
+    const esRey=snap.data().reyTemporal===S.playerName;
+    const entry={ quien:S.playerName, grupo:S.grupo, texto:san(msg), esRey, timestamp:new Date().toISOString() };
+    try {
+        await updateDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:arrayUnion(entry) });
+    } catch(e){
+        await setDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:[entry] });
+    }
+}
+
+async function enviarMensajeSistemaConsejo(texto) {
+    const entry={ quien:"SISTEMA", grupo:"", texto, esRey:false, esSystem:true, timestamp:new Date().toISOString() };
+    try {
+        await updateDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:arrayUnion(entry) });
+    } catch(e){
+        await setDoc(doc(db,"salas",S.salaId,"chats","__consejo__"),{ mensajes:[entry] });
+    }
+}
+
+function renderConsejoChat(msgs) {
+    const box=document.getElementById("royal-chat-messages"); if(!box) return;
+    box.innerHTML=msgs.slice(-80).map(m=>{
+        if(m.esSystem) return `<div class="royal-msg system-msg">${san(m.texto)}</div>`;
+        const icon=GRUPO_ICONS[m.grupo]||"";
+        return `<div class="royal-msg${m.esRey?" is-king":""}">
+            <span class="who">${icon} ${san(m.quien)}</span>${san(m.texto)}
+        </div>`;
+    }).join("");
+    box.scrollTop=box.scrollHeight;
+}
+
+function cerrarConsejoReal() {
+    const overlay=document.getElementById("royal-council-overlay");
+    if(overlay) overlay.classList.remove("active");
+    if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
+    S.selectedOption=null;
+}
+
 function cerrarModales(){ document.querySelectorAll(".modal-overlay").forEach(m=>m.classList.remove("active")); }
- 
+
 /* ============================================================
    CHAT
    ============================================================ */
@@ -1616,7 +1764,7 @@ async function enviarMensaje() {
         });
     } catch(e){ console.error(e); toast("Error al enviar.","error"); }
 }
- 
+
 function renderChat(msgs) {
     const box=document.getElementById("chat-messages"); if(!box) return;
     box.innerHTML=msgs.slice(-60).map(m=>
@@ -1624,7 +1772,7 @@ function renderChat(msgs) {
     ).join("");
     box.scrollTop=box.scrollHeight;
 }
- 
+
 /* ============================================================
    DEBRIEFING — PROFESOR (detallado, solo para él)
    ============================================================ */
@@ -1632,11 +1780,11 @@ function mostrarDebriefingHost(data) {
     const r=data.recursos||S.recursos;
     const survived=r.food>15&&r.gold>10&&r.order>15&&r.morale>15;
     poblarDebriefingComun(data, survived, r);
- 
+
     // Panel exclusivo del profesor
     const existing=document.getElementById("host-only-results");
     if(existing) existing.remove();
- 
+
     const hostPanel=document.createElement("div");
     hostPanel.id="host-only-results";
     hostPanel.style.cssText="margin-top:20px;text-align:left;";
@@ -1672,7 +1820,7 @@ function mostrarDebriefingHost(data) {
     const card=document.querySelector("#screen-debriefing .card");
     if(card) card.appendChild(hostPanel);
 }
- 
+
 /* ============================================================
    DEBRIEFING — JUGADOR (solo resultado general)
    ============================================================ */
@@ -1681,10 +1829,10 @@ function mostrarDebriefingPlayer(data) {
     const survived=r.food>15&&r.gold>10&&r.order>15&&r.morale>15;
     poblarDebriefingComun(data, survived, r);
 }
- 
+
 function poblarDebriefingComun(data, survived, r) {
     updateBars(r,"f-");
- 
+
     const banner=document.getElementById("survival-banner");
     if(banner){
         banner.className=`survival-banner ${survived?"survived":"collapsed"}`;
@@ -1692,14 +1840,14 @@ function poblarDebriefingComun(data, survived, r) {
             ?"🏰 El reino sobrevivió — Las decisiones del pueblo lo sostuvieron"
             :"💀 El reino colapsó — Las malas decisiones pasaron factura";
     }
- 
+
     const morBox=document.getElementById("moraleja-box");
     if(morBox){
         morBox.textContent=survived
             ?`"Un pueblo que delibera con sabiduría, que coopera cuando la crisis aprieta y que pone el bien común sobre el interés propio, construye un legado que perdura más allá de cualquier muro. Las decisiones correctas no son siempre las más fáciles, pero sí las más justas."`
             :leyendaMoraleja(r);
     }
- 
+
     const grid=document.getElementById("final-groups-grid");
     if(grid){
         const dec=data.decisiones||{};
@@ -1713,14 +1861,14 @@ function poblarDebriefingComun(data, survived, r) {
         }).join("");
     }
 }
- 
+
 function leyendaMoraleja(r){
     if(r.food<=15) return `"El hambre no espera decretos ni debates. Un reino que descuida la tierra que lo alimenta está firmando su sentencia de muerte. La primera responsabilidad de todo gobernante es asegurar que su pueblo coma."`;
     if(r.morale<=15) return `"Ningún muro aguanta cuando los que viven detrás han perdido la esperanza. Un reino de personas sin moral no es un reino: es una prisión sin guardas. El alma del pueblo es su recurso más valioso."`;
     if(r.order<=15) return `"La libertad sin orden se convierte en caos, y el caos devora a los más débiles primero. Gobernar es encontrar el equilibrio entre la justicia y la norma, no elegir uno e ignorar el otro."`;
     return `"El dinero del reino es el reflejo de sus decisiones: cada moneda gastada en injusticia, cada impuesto mal usado o cada negocio corrupto deja al tesoro más vacío que cualquier guerra."`;
 }
- 
+
 /* ============================================================
    REINICIAR
    ============================================================ */
@@ -1732,21 +1880,30 @@ function reiniciar() {
     document.getElementById("input-player-name").value="";
     switchScreen("screen-auth");
 }
- 
+
 /* ============================================================
    DOM READY
    ============================================================ */
 document.addEventListener("DOMContentLoaded",()=>{
-    document.getElementById("btn-create-host")  ?.addEventListener("click",crearSala);
-    document.getElementById("btn-start-game")   ?.addEventListener("click",iniciarSimulacion);
-    document.getElementById("btn-next-round")   ?.addEventListener("click",avanzarRonda);
-    document.getElementById("btn-join-player")  ?.addEventListener("click",unirseJugador);
-    document.getElementById("btn-submit-action")?.addEventListener("click",confirmarDecision);
-    document.getElementById("btn-send-chat")    ?.addEventListener("click",enviarMensaje);
-    document.getElementById("btn-restart")      ?.addEventListener("click",reiniciar);
-    document.getElementById("btn-warning-ok")   ?.addEventListener("click",iniciarEleccionReyTemporal);
-    document.getElementById("chat-input")       ?.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();enviarMensaje();} });
- 
+    document.getElementById("btn-create-host")      ?.addEventListener("click",crearSala);
+    document.getElementById("btn-start-game")       ?.addEventListener("click",iniciarSimulacion);
+    document.getElementById("btn-next-round")       ?.addEventListener("click",avanzarRonda);
+    document.getElementById("btn-join-player")      ?.addEventListener("click",unirseJugador);
+    document.getElementById("btn-submit-action")    ?.addEventListener("click",confirmarDecision);
+    document.getElementById("btn-send-chat")        ?.addEventListener("click",enviarMensaje);
+    document.getElementById("btn-restart")          ?.addEventListener("click",reiniciar);
+    document.getElementById("btn-warning-ok")       ?.addEventListener("click",iniciarEleccionReyTemporal);
+    document.getElementById("btn-toggle-situations")?.addEventListener("click",toggleSituacionesPanel);
+    document.getElementById("btn-royal-chat-send")  ?.addEventListener("click",enviarMensajeConsejo);
+    document.getElementById("btn-royal-confirm")    ?.addEventListener("click",confirmarDecisionCrisis);
+
+    document.getElementById("chat-input")?.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){e.preventDefault();enviarMensaje();}
+    });
+    document.getElementById("royal-chat-input")?.addEventListener("keydown",e=>{
+        if(e.key==="Enter"){e.preventDefault();enviarMensajeConsejo();}
+    });
+
     const salaUrl=new URLSearchParams(window.location.search).get("sala");
     if(salaUrl){ const inp=document.getElementById("input-sala-id"); if(inp) inp.value=salaUrl.toUpperCase().slice(0,9); }
     window.addEventListener("beforeunload",e=>{ if(S.salaId){e.preventDefault();e.returnValue="";} });
