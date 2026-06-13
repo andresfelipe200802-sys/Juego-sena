@@ -1,5 +1,5 @@
 /**
- * ECOS DEL TRONO v3.0 — index.js
+ * ECOS DEL TRONO v4.0 — index.js
  *
  * CAMBIOS PRINCIPALES v4:
  * - 15 rondas totales (2 min c/u = 30 min partida)
@@ -26,6 +26,7 @@ const firebaseConfig = {
   appId: "1:916346464912:web:3932c51cc83cfc330d8615",
   measurementId: "G-1EVTFCPC51"
 };
+
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
