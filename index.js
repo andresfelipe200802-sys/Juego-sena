@@ -1165,6 +1165,9 @@ async function crearSala() {
    ============================================================ */
 async function iniciarSimulacion() {
     if(!S.salaId||S.timerInterval) return;
+    const snap=await getDoc(doc(db,"salas",S.salaId));
+    const totalJug=Object.keys(snap.data().jugadores||{}).length;
+    if(totalJug===0){ toast("No hay ningun jugador conectado aun.","error"); return; }
     document.getElementById("btn-start-game").disabled=true;
     document.getElementById("btn-start-game").textContent="⚡ En progreso";
     const btnN=document.getElementById("btn-next-round");
@@ -1173,22 +1176,25 @@ async function iniciarSimulacion() {
 }
 
 async function avanzarRonda() {
-    // Verificar que TODOS los grupos hayan decidido
     const snap=await getDoc(doc(db,"salas",S.salaId));
     if(!snap.exists()) return;
     const data=snap.data();
     const rondaData=RONDAS[data.ronda];
-    const gruposRonda=Object.keys(rondaData.grupos);
+    const jug=data.jugadores||{};
     const decisiones=data.decisiones||{};
-    const faltantes=gruposRonda.filter(g=>!decisiones[g]);
+
+    // Solo son obligatorios los grupos que tienen al menos 1 jugador
+    const gruposActivos=Object.keys(rondaData.grupos).filter(g=>
+        Object.values(jug).some(j=>j.grupo===g)
+    );
+    const faltantes=gruposActivos.filter(g=>!decisiones[g]);
 
     if(faltantes.length>0){
-        toast(`Faltan decisiones de: ${faltantes.join(", ")}. Espera que todos decidan.`,"error",5000);
+        toast(`Aun faltan decisiones de: ${faltantes.join(", ")}.`,"error",5000);
         return;
     }
-    // En rondas Rey, también verificar decisión de crisis
     if(rondaData.tipo==="rey" && !data.decisionCrisis){
-        toast("Falta la decisión de crisis del Rey Temporal.","error",4000);
+        toast("Falta la decision de crisis del Rey Temporal.","error",4000);
         return;
     }
 
@@ -1213,6 +1219,9 @@ async function lanzarRonda(idx) {
         eleccionPendiente: true,
         eleccionReyPendiente: sit.tipo==="rey",
         puedeAvanzar:false,
+        tiempoAgotado:false,
+        penalizacion:[],
+        consejoBloqueado:false,
     });
     let t=TIEMPO_RONDA;
     S.timerInterval=setInterval(async()=>{
@@ -1220,8 +1229,46 @@ async function lanzarRonda(idx) {
         const el=document.getElementById("host-timer");
         if(el){ el.textContent=fmt(t); el.classList.toggle("warning",t<=30); }
         if(t%10===0&&t>0) await updateDoc(salaRef,{tiempo:t}).catch(console.error);
-        if(t<=0){ limpiarTimer(); toast("⏰ Tiempo agotado. Revisa decisiones antes de avanzar.","info",4000); }
+        if(t<=0){
+            limpiarTimer();
+            // Aplicar penalizacion a grupos que no decidieron
+            await aplicarPenalidadTiempo(idx);
+            // Mostrar overlay "Tiempo agotado" en Firestore (todos lo ven)
+            await updateDoc(salaRef,{ tiempoAgotado:true, tiempo:0 });
+            // Avanzar automaticamente tras 3 segundos
+            setTimeout(async()=>{
+                await updateDoc(salaRef,{ tiempoAgotado:false });
+                const siguiente=idx+1;
+                if(siguiente>=TOTAL_RONDAS){ await finalizarSimulacion(); }
+                else { await lanzarRonda(siguiente); }
+            }, 3000);
+        }
     },1000);
+}
+
+/* Aplica penalizacion de -10 a todos los recursos por cada grupo que no decidio */
+async function aplicarPenalidadTiempo(idxRonda) {
+    const snap=await getDoc(doc(db,"salas",S.salaId));
+    if(!snap.exists()) return;
+    const data=snap.data();
+    const sit=RONDAS[idxRonda];
+    const decisiones=data.decisiones||{};
+    const gruposRonda=Object.keys(sit.grupos||{});
+    const sinDecision=gruposRonda.filter(g=>!decisiones[g]);
+    if(!sinDecision.length) return;          // todos decidieron, sin penalizacion
+    const r=data.recursos;
+    const penaltyPorGrupo=5;                 // -5 por cada grupo sin decision
+    const total=sinDecision.length*penaltyPorGrupo;
+    const nuevosR={
+        food:  Math.max(0,(r.food||0)  -total),
+        gold:  Math.max(0,(r.gold||0)  -total),
+        order: Math.max(0,(r.order||0) -total),
+        morale:Math.max(0,(r.morale||0)-total),
+    };
+    await updateDoc(doc(db,"salas",S.salaId),{
+        recursos: nuevosR,
+        penalizacion: sinDecision,           // guardamos quienes no decidieron para el host
+    });
 }
 
 async function finalizarSimulacion() {
@@ -1264,46 +1311,181 @@ async function unirseJugador() {
    ============================================================ */
 function actualizarHost(data) {
     const fase=document.getElementById("host-current-fase");
-    if(fase) fase.textContent=`Ronda ${(data.ronda||0)+1} / ${TOTAL_RONDAS}`;
+    if(fase) fase.textContent=data.estado==="esperando"
+        ? "Esperando jugadores..."
+        : `Ronda ${(data.ronda||0)+1} / ${TOTAL_RONDAS}`;
     if(data.recursos){ S.recursos=data.recursos; updateBars(data.recursos,""); }
+
+    const jug=data.jugadores||{};
+    const dec=data.decisiones||{};
+    const lideres=data.lideres||{};
+    const votos=data.votos||{};
+    const votosRey=data.votosRey||{};
+    const totalJug=Object.keys(jug).length;
+
+    // ── Fase de espera: mostrar boton iniciar y conteo ──
+    const btnStart=document.getElementById("btn-start-game");
+    if(data.estado==="esperando"){
+        if(btnStart){
+            btnStart.disabled=totalJug===0;
+            btnStart.title=totalJug===0?"Espera al menos un jugador":"Iniciar con los jugadores actuales";
+        }
+        const evEl=document.getElementById("host-event-text");
+        if(evEl) evEl.textContent=`${totalJug} jugador(es) conectado(s). Puedes iniciar cuando quieras.`;
+    }
+
+    // ── Overlay de tiempo agotado (todos lo ven via Firestore) ──
+    const ovEl=document.getElementById("host-timeout-overlay");
+    if(ovEl) ovEl.style.display=data.tiempoAgotado?"flex":"none";
 
     const sit=data.situacion;
     if(sit){
         const esRey=sit.tipo==="rey";
         const evEl=document.getElementById("host-event-text");
-        if(evEl) evEl.textContent=`Todos los gremios deliberan simultaneamente.${esRey?" ⚠️ Ronda de Rey Temporal activa: hay crisis global.":""}`;
+        if(evEl){
+            let txt=`Todos los gremios deliberan.`;
+            if(esRey) txt+=` ⚠️ Ronda Rey Temporal — hay crisis global.`;
+            if(data.penalizacion?.length) txt+=` ⚠️ Penalizacion aplicada a: ${data.penalizacion.join(", ")}.`;
+            evEl.textContent=txt;
+        }
         const afEl=document.getElementById("host-afecta");
         const afGr=document.getElementById("host-afecta-grupos");
         if(afEl&&afGr){ afEl.style.display="inline-flex"; afGr.textContent=esRey?"Rey Temporal + crisis global":"Todos los gremios"; }
         const btnToggle=document.getElementById("btn-toggle-situations");
         if(btnToggle) btnToggle.style.display="block";
-        renderSituacionesHost(sit, data.decisiones||{});
+        renderSituacionesHost(sit, dec);
     }
 
-    const jug=data.jugadores||{};
-    const dec=data.decisiones||{};
+    // ── Tarjetas de gremios: integrantes, votos, lider ──
     GRUPOS.forEach(g=>{
         const card=document.getElementById(`card-${g}`);
         const statusEl=card?.querySelector(".group-status");
         const countEl=document.getElementById(`count-${g}`);
-        const n=Object.values(jug).filter(j=>j.grupo===g).length;
+        const miembros=Object.values(jug).filter(j=>j.grupo===g);
+        const n=miembros.length;
         if(countEl) countEl.textContent=`${n} / ${MAX_POR_GRUPO} miembros`;
         if(!card) return;
-        if(dec[g]){ card.classList.add("ready"); if(statusEl) statusEl.textContent="✅ Decision tomada"; }
-        else { card.classList.remove("ready"); if(statusEl) statusEl.textContent=n>0?"🗣️ Deliberando...":"💤 Esperando..."; }
+
+        // Estado de decision
+        if(dec[g]){
+            card.classList.add("ready");
+            if(statusEl) statusEl.innerHTML=`✅ Decidio: <em>${san(dec[g].opcionTexto||"").slice(0,40)}...</em>`;
+        } else {
+            card.classList.remove("ready");
+            // Mostrar estado de votacion de lider si aplica
+            const votosGrupo=votos[g]||{};
+            const lider=lideres[g];
+            if(lider){
+                if(statusEl) statusEl.innerHTML=`👑 Lider: <strong>${san(lider)}</strong> — ${n>0?"deliberando":"sin jugadores"}`;
+            } else if(Object.keys(votosGrupo).length>0){
+                // Mostrar conteo de votos
+                const conteo={};
+                Object.values(votosGrupo).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
+                const tallyStr=Object.entries(conteo).map(([k,v])=>`${san(k)}: ${v}v`).join(" | ");
+                if(statusEl) statusEl.innerHTML=`🗳️ Votando: ${tallyStr}`;
+            } else {
+                if(statusEl) statusEl.textContent=n>0?"🗣️ Deliberando...":"💤 Sin jugadores";
+            }
+        }
     });
 
+    // ── Panel de votos para Rey Temporal (solo en fases rey) ──
+    renderVotosReyHost(data);
+
+    // ── Habilitar btn siguiente ronda ──
     const btnN=document.getElementById("btn-next-round");
     if(btnN&&sit){
-        const gruposRonda=Object.keys(sit.grupos||{});
-        const faltantes=gruposRonda.filter(g=>!dec[g]);
+        const gruposActivos=Object.keys(sit.grupos||{}).filter(g=>Object.values(jug).some(j=>j.grupo===g));
+        const faltantes=gruposActivos.filter(g=>!dec[g]);
         const crisisOk=sit.tipo!=="rey"||!!data.decisionCrisis;
         const todoListo=faltantes.length===0&&crisisOk;
         btnN.disabled=!todoListo;
-        btnN.title=todoListo?"Todos decidieron. Puedes avanzar.":`Faltan: ${faltantes.join(", ")}`;
+        btnN.title=todoListo?"Todos decidieron. Puedes avanzar.":`Aun faltan: ${faltantes.join(", ")}`;
     }
 
     if(data.estado==="finalizado") mostrarDebriefingHost(data);
+}
+
+/* ── Panel de votos para Rey Temporal — solo visible para el profesor ── */
+function renderVotosReyHost(data) {
+    let panel=document.getElementById("host-votes-panel");
+    const sit=data.situacion;
+    const esRey=sit?.tipo==="rey";
+    const lideres=data.lideres||{};
+    const votosRey=data.votosRey||{};
+    const jug=data.jugadores||{};
+    const reyTemporal=data.reyTemporal;
+
+    // Solo mostrar en fases rey o en fase de espera (eleccion de lideres)
+    const hayVotosLider=Object.values(data.votos||{}).some(v=>Object.keys(v).length>0);
+    const hayLideres=Object.keys(lideres).length>0;
+    const mostrar=hayVotosLider||hayLideres||(esRey&&(Object.keys(votosRey).length>0||reyTemporal));
+
+    if(!mostrar){
+        if(panel) panel.style.display="none";
+        return;
+    }
+
+    if(!panel){
+        panel=document.createElement("div");
+        panel.id="host-votes-panel";
+        panel.style.cssText="background:var(--bg-card);border:1px solid var(--border-faint);border-radius:var(--r-lg);padding:20px;margin-top:16px;";
+        document.querySelector(".host-main")?.appendChild(panel);
+    }
+    panel.style.display="block";
+
+    let html=`<h3 style="font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">
+        🗳️ Estado de Elecciones</h3>`;
+
+    // Lideres elegidos y votos por grupo
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px;">`;
+    GRUPOS.forEach(g=>{
+        const miembros=Object.values(jug).filter(j=>j.grupo===g);
+        if(!miembros.length) return;
+        const lider=lideres[g];
+        const votosGrupo=data.votos?.[g]||{};
+        const conteo={};
+        Object.values(votosGrupo).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
+        const icon=GRUPO_ICONS[g];
+
+        let contenido="";
+        if(lider){
+            contenido=`<div style="color:var(--gold-bright);font-size:.82rem;margin-top:6px;">👑 Lider: <strong>${san(lider)}</strong></div>`;
+        } else if(Object.keys(conteo).length){
+            contenido=Object.entries(conteo).map(([k,v])=>
+                `<div style="font-size:.78rem;color:var(--text-mid);margin-top:3px;">▸ ${san(k)}: ${v} voto(s)</div>`
+            ).join("");
+        } else {
+            contenido=`<div style="font-size:.78rem;color:var(--text-dim);margin-top:4px;">Sin votos aun</div>`;
+        }
+
+        html+=`<div style="background:rgba(0,0,0,.25);border-radius:8px;padding:10px;border:1px solid var(--border-faint);">
+            <div style="font-size:.82rem;font-weight:700;color:var(--text-light);">${icon} ${san(g)}</div>
+            ${contenido}
+        </div>`;
+    });
+    html+=`</div>`;
+
+    // Votos para Rey Temporal
+    if(esRey){
+        html+=`<div style="border-top:1px solid var(--border-faint);padding-top:12px;margin-top:4px;">
+            <p style="font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+                ⚔️ Votacion Rey Temporal</p>`;
+        if(reyTemporal){
+            html+=`<p style="color:var(--gold-bright);font-size:.9rem;font-weight:700;">👑 Rey Temporal elegido: ${san(reyTemporal)}</p>`;
+        } else if(Object.keys(votosRey).length){
+            const conteoRey={};
+            Object.values(votosRey).forEach(v=>{conteoRey[v]=(conteoRey[v]||0)+1;});
+            html+=Object.entries(conteoRey).map(([k,v])=>
+                `<div style="font-size:.82rem;color:var(--text-mid);margin-bottom:4px;">▸ ${san(k)}: ${v} voto(s) de lideres</div>`
+            ).join("");
+        } else {
+            html+=`<p style="font-size:.82rem;color:var(--text-dim);">Los lideres aun no han votado.</p>`;
+        }
+        html+=`</div>`;
+    }
+
+    panel.innerHTML=html;
 }
 
 /* ============================================================
@@ -1351,6 +1533,10 @@ function actualizarPlayer(data) {
     const tEl=document.getElementById("player-timer");
     if(tEl){ tEl.textContent=fmt(data.tiempo||0); tEl.classList.toggle("urgent",(data.tiempo||0)<=30); }
     if(data.recursos){ S.recursos=data.recursos; updateBars(data.recursos,"p-"); }
+
+    // Overlay de tiempo agotado
+    const ovEl=document.getElementById("player-timeout-overlay");
+    if(ovEl) ovEl.style.display=data.tiempoAgotado?"flex":"none";
 
     // Liderazgo
     const lideres=data.lideres||{};
