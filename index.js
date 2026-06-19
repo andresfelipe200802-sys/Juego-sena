@@ -1650,8 +1650,8 @@ function renderSituacionJugador(sit, data) {
 
 function seleccionarOpcion(i, sit, btnEl) {
     if(!S.isLeader){ toast("Solo el Líder del gremio puede seleccionar la decisión.","info"); return; }
-    // Guard contra click mientras la transacción está en vuelo (botón ya debería estar disabled)
     const btnS=document.getElementById("btn-submit-action");
+    // Guard: si el botón ya dice "Confirmad..." la decisión está sellada
     if(btnS&&btnS.disabled&&btnS.textContent.includes("Confirmad")){
         toast("Ya confirmaste tu decisión. No puedes cambiarla.","info"); return;
     }
@@ -1665,7 +1665,6 @@ function seleccionarOpcion(i, sit, btnEl) {
         const label={food:"🌾 Alimento",gold:"🪙 Tesoro",order:"⚔️ Orden",morale:"💜 Moral"}[k];
         return `<span class="consequence-tag ${v>=0?"good":"bad"}">${label} ${v>=0?"+":""}${v}</span>`;
     }).join("");
-    const btnS=document.getElementById("btn-submit-action");
     if(btnS) btnS.disabled=false;
 }
 
