@@ -1078,6 +1078,8 @@ let _lastEleccionKey   = "";
    ============================================================ */
 const fmt = s => { const v=Math.max(0,Math.floor(s)); return `${String(Math.floor(v/60)).padStart(2,"0")}:${String(v%60).padStart(2,"0")}`; };
 const san = s => { const d=document.createElement("div"); d.textContent=s; return d.innerHTML; };
+// Normaliza nombres para comparación robusta (sin espacios extra, minúsculas)
+const normNombre = s => (s||"").trim().toLowerCase();
 
 function toast(msg, type="info", ms=3500) {
     const c=document.getElementById("toast-container"); if(!c) return;
@@ -1896,9 +1898,6 @@ function mostrarResultadoEleccion(ganador) {
    El Rey ve y puede elegir opciones; los demas solo chatean.
    ============================================================ */
 let _consejoChatListener = null;
-
-// Normaliza un nombre para comparación robusta (sin espacios extra, minúsculas)
-const normNombre = s => (s||"").trim().toLowerCase();
 
 function abrirConsejoReal(data) {
     const sit=data.situacion;
