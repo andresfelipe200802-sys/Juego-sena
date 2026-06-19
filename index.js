@@ -14,7 +14,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getFirestore, doc, setDoc, onSnapshot,
-    updateDoc, getDoc, arrayUnion
+    updateDoc, getDoc, arrayUnion, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1066,6 +1066,7 @@ const S = {
     chatListener:   null,
     selectedOption: null,
     electionDone:   false,
+    decisionConfirmada: false,
     recursos: { food:70, gold:60, order:75, morale:65 },
 };
 
@@ -1295,7 +1296,11 @@ async function unirseJugador() {
     const data=snap.data();
     const miembros=Object.values(data.jugadores||{}).filter(j=>j.grupo===grupo);
     if(miembros.length>=MAX_POR_GRUPO){ toast(`El gremio ${grupo} ya está lleno (${MAX_POR_GRUPO} máx.).`,"error",4000); return; }
-    if(data.jugadores?.[san(nombre)]){ toast("Ese nombre ya está en uso.","error"); return; }
+    const nombreNorm=san(nombre).trim().toLowerCase();
+    const nombresExistentes=Object.keys(data.jugadores||{}).map(n=>n.trim().toLowerCase());
+    if(nombresExistentes.includes(nombreNorm)){
+        toast(`El nombre "${nombre}" ya está en uso en esta sala. Elige otro nombre.`,"error",4000); return;
+    }
     S.salaId=sala; S.playerName=san(nombre); S.grupo=grupo; S.isHost=false; S.isLeader=false;
     await updateDoc(doc(db,"salas",sala),{
         [`jugadores.${S.playerName}`]:{ grupo, nombre:S.playerName, timestamp:new Date().toISOString() }
@@ -1553,6 +1558,11 @@ function actualizarPlayer(data) {
     if(ronda!==_lastRondaRendered){
         _lastRondaRendered=ronda;
         S.selectedOption=null; S.electionDone=false; _lastEleccionKey="";
+        // No usamos S.decisionConfirmada — Firestore es la fuente de verdad.
+        // Limpiar cualquier bloqueo visual residual de la ronda anterior.
+        document.querySelectorAll(".option-btn").forEach(b=>{
+            b.disabled=false; b.style.cursor="pointer"; b.style.opacity="1";
+        });
         renderSituacionJugador(sit, data);
     }
 
@@ -1579,8 +1589,10 @@ function actualizarPlayer(data) {
         }
     }
 
-    // Abrir o cerrar el Consejo Real segun flag de Firestore
-    if(data.consejoBloqueado && data.reyTemporal) {
+    // Abrir o actualizar el Consejo Real según Firestore (fuente de verdad)
+    // Se llama en CADA snapshot mientras consejoBloqueado sea true para
+    // re-evaluar soyRey correctamente cuando reyTemporal llega desfasado.
+    if(data.consejoBloqueado) {
         abrirConsejoReal(data);
     } else if(!data.consejoBloqueado) {
         cerrarConsejoReal();
@@ -1636,6 +1648,11 @@ function renderSituacionJugador(sit, data) {
 
 function seleccionarOpcion(i, sit, btnEl) {
     if(!S.isLeader){ toast("Solo el Líder del gremio puede seleccionar la decisión.","info"); return; }
+    // Guard contra click mientras la transacción está en vuelo (botón ya debería estar disabled)
+    const btnS=document.getElementById("btn-submit-action");
+    if(btnS&&btnS.disabled&&btnS.textContent.includes("Confirmad")){
+        toast("Ya confirmaste tu decisión. No puedes cambiarla.","info"); return;
+    }
     S.selectedOption=i;
     document.querySelectorAll(".option-btn").forEach(b=>b.classList.remove("selected"));
     btnEl.classList.add("selected");
@@ -1651,7 +1668,9 @@ function seleccionarOpcion(i, sit, btnEl) {
 }
 
 /* ============================================================
-   CONFIRMAR DECISIÓN
+   CONFIRMAR DECISIÓN — usa runTransaction para evitar
+   doble escritura y condición de carrera entre líderes.
+   Bloqueo optimista inmediato ANTES de esperar a Firestore.
    ============================================================ */
 async function confirmarDecision() {
     if(!S.isLeader)             { toast("Solo el Líder puede confirmar.","info"); return; }
@@ -1660,30 +1679,71 @@ async function confirmarDecision() {
     if(!sit) return;
     const grupoSit=sit.grupos[S.grupo];
     if(!grupoSit) return;
+
+    // ── Bloqueo optimista INMEDIATO (antes de Firestore) ──
     const btnS=document.getElementById("btn-submit-action");
     btnS.disabled=true; btnS.innerHTML=`<span class="spinner"></span> Sellando...`;
+    document.querySelectorAll(".option-btn").forEach(b=>{
+        b.disabled=true; b.style.cursor="default";
+        b.style.opacity=b.classList.contains("selected")?"1":".35";
+    });
+
     const op=grupoSit.opciones[S.selectedOption];
     const ef=op.efectos;
-    const snap=await getDoc(doc(db,"salas",S.salaId));
-    const r=snap.data().recursos;
-    // Los efectos del grupo se aplican directamente al reino
-    const nuevosR={
-        food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
-        gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
-        order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
-        morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
-    };
+    const salaRef=doc(db,"salas",S.salaId);
+
     try {
-        await updateDoc(doc(db,"salas",S.salaId),{
-            [`decisiones.${S.grupo}`]:{ jugador:S.playerName, opcionIndex:S.selectedOption, opcionTexto:op.texto, efectos:ef, buena:op.buena, timestamp:new Date().toISOString() },
-            recursos:nuevosR,
+        // ── runTransaction: verifica server-side que el grupo aún no haya decidido ──
+        await runTransaction(db, async (tx) => {
+            const snap=await tx.get(salaRef);
+            if(!snap.exists()) throw new Error("Sala no encontrada");
+            const data=snap.data();
+
+            // Guardia server-side: si ya existe decisión para este grupo, abortar
+            if(data.decisiones?.[S.grupo]) {
+                throw new Error("YA_DECIDIDO");
+            }
+
+            const r=data.recursos||{food:70,gold:60,order:75,morale:65};
+            const nuevosR={
+                food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
+                gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
+                order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
+                morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
+            };
+
+            tx.update(salaRef, {
+                [`decisiones.${S.grupo}`]: {
+                    jugador:    S.playerName,
+                    opcionIndex:S.selectedOption,
+                    opcionTexto:op.texto,
+                    efectos:    ef,
+                    buena:      op.buena,
+                    timestamp:  new Date().toISOString()
+                },
+                recursos: nuevosR,
+            });
         });
+
         btnS.textContent="✅ Decisión Confirmada"; btnS.style.backgroundColor="var(--emerald)";
-        toast("Decisión registrada.","success");
+        toast("Decisión registrada. Ya no puedes cambiarla.","success");
+        // S.decisionConfirmada ya no es la fuente de verdad — Firestore lo es.
+        // El re-render via onSnapshot lo confirma definitivamente.
+
     } catch(e) {
-        console.error(e); toast("Error al confirmar.","error");
-        btnS.disabled=false; btnS.textContent="🔒 Confirmar Decisión Final";
-        btnS.style.backgroundColor="";
+        if(e.message==="YA_DECIDIDO"){
+            // Otro líder ya confirmó (no debería pasar en uso normal, pero cubre reconexiones)
+            btnS.textContent="✅ Decisión ya registrada"; btnS.style.backgroundColor="var(--emerald)";
+            toast("La decisión de tu gremio ya fue registrada.","info");
+        } else {
+            console.error(e); toast("Error al confirmar. Intenta de nuevo.","error");
+            // Revertir bloqueo optimista para que el usuario pueda reintentar
+            btnS.disabled=false; btnS.textContent="🔒 Confirmar Decisión Final";
+            btnS.style.backgroundColor="";
+            document.querySelectorAll(".option-btn").forEach(b=>{
+                b.disabled=false; b.style.cursor="pointer"; b.style.opacity="1";
+            });
+        }
     }
 }
 
@@ -1773,24 +1833,53 @@ async function iniciarEleccionReyTemporal() {
 }
 
 async function emitirVotoRey(candidato, total) {
-    const snap=await getDoc(doc(db,"salas",S.salaId));
-    const lideres=snap.data().lideres||{};
-    if(lideres[S.grupo]!==S.playerName) return;
-    await updateDoc(doc(db,"salas",S.salaId),{ [`votosRey.${S.playerName}`]: candidato });
-    const snap2=await getDoc(doc(db,"salas",S.salaId));
-    const votos=snap2.data().votosRey||{};
-    const conteo={}; Object.values(votos).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
-    const ganador=Object.entries(conteo).sort((a,b)=>b[1]-a[1])[0];
-    if(ganador&&ganador[1]>=Math.ceil(total/2)){
-        // Activar consejoBloqueado para abrir el overlay en todos los jugadores
-        await updateDoc(doc(db,"salas",S.salaId),{
-            reyTemporal:ganador[0],
-            eleccionReyPendiente:false,
-            consejoBloqueado:true,
+    const salaRef=doc(db,"salas",S.salaId);
+
+    // Usar runTransaction para: verificar que soy líder, registrar voto
+    // y, si hay mayoría, escribir reyTemporal + consejoBloqueado atómicamente
+    // en UNA sola operación, eliminando el estado intermedio donde
+    // consejoBloqueado=true pero reyTemporal aún no existe.
+    let ganadorFinal = null;
+    try {
+        await runTransaction(db, async (tx) => {
+            const snap=await tx.get(salaRef);
+            const data=snap.data();
+            const lideres=data.lideres||{};
+
+            // Solo líderes votan
+            if(normNombre(lideres[S.grupo])!==normNombre(S.playerName)) return;
+            // No votar si ya hay Rey elegido
+            if(data.reyTemporal) return;
+
+            const nuevoVotos={...(data.votosRey||{}), [S.playerName]:candidato};
+            const conteo={};
+            Object.values(nuevoVotos).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
+            const sorted=Object.entries(conteo).sort((a,b)=>b[1]-a[1]);
+            const ganador=sorted[0];
+            const hayMayoria=ganador&&ganador[1]>=Math.ceil(total/2);
+
+            if(hayMayoria){
+                // Escritura ATÓMICA: reyTemporal + consejoBloqueado en la misma tx
+                tx.update(salaRef,{
+                    votosRey:             nuevoVotos,
+                    reyTemporal:          ganador[0],
+                    eleccionReyPendiente: false,
+                    consejoBloqueado:     true,
+                });
+                ganadorFinal=ganador[0];
+            } else {
+                tx.update(salaRef,{ votosRey: nuevoVotos });
+            }
         });
-        S.isLeader=ganador[0]===S.playerName;
-        mostrarResultadoEleccion(ganador[0]);
-    } else { toast("Voto registrado.","info"); }
+
+        if(ganadorFinal){
+            mostrarResultadoEleccion(ganadorFinal);
+        } else {
+            toast("Voto registrado. Esperando más votos...","info");
+        }
+    } catch(e){
+        console.error(e); toast("Error al votar. Intenta de nuevo.","error");
+    }
 }
 
 function mostrarResultadoEleccion(ganador) {
@@ -1808,18 +1897,30 @@ function mostrarResultadoEleccion(ganador) {
    ============================================================ */
 let _consejoChatListener = null;
 
+// Normaliza un nombre para comparación robusta (sin espacios extra, minúsculas)
+const normNombre = s => (s||"").trim().toLowerCase();
+
 function abrirConsejoReal(data) {
     const sit=data.situacion;
     if(!sit?.crisis) return;
     const overlay=document.getElementById("royal-council-overlay");
-    if(!overlay||overlay.classList.contains("active")) return;
+    if(!overlay) return;
+
+    // ── Sin guard de "active" — re-evalúa soyRey en CADA snapshot ──
+    // Esto corrige el bug donde el Rey veía solo el chat porque el primer
+    // snapshot llegó antes de que reyTemporal estuviera escrito.
+    const primerAbrir = !overlay.classList.contains("active");
+
+    // Comparación normalizada para evitar fallos por mayúsculas/espacios
+    const soyRey = normNombre(data.reyTemporal) === normNombre(S.playerName);
 
     document.getElementById("council-crisis-text").textContent=sit.crisis.texto;
-    const soyRey=data.reyTemporal===S.playerName;
     const badge=document.getElementById("council-king-badge");
     badge.style.display=soyRey?"inline-flex":"none";
     document.getElementById("council-crisis-subtitle").textContent=
-        "Rey Temporal: "+san(data.reyTemporal||"?")+". Debatan y luego el Rey decide.";
+        data.reyTemporal
+            ? "Rey Temporal: "+san(data.reyTemporal)+". Debatan y luego el Rey decide."
+            : "Eligiendo Rey Temporal... espera un momento.";
 
     const decSection=document.getElementById("royal-decision-section");
     const confirmRow=document.getElementById("royal-confirm-row");
@@ -1830,31 +1931,50 @@ function abrirConsejoReal(data) {
         decSection.style.display="block";
         confirmRow.style.display="block";
         waitMsg.style.display="none";
-        optsDiv.innerHTML="";
-        S.selectedOption=null;
-        sit.crisis.opciones.forEach((op,i)=>{
-            const b=document.createElement("button"); b.type="button"; b.className="royal-option-btn";
-            b.textContent=op.texto; b.dataset.index=i;
-            b.addEventListener("click",()=>seleccionarOpcionCrisis(i,b));
-            optsDiv.appendChild(b);
-        });
-        const btnConf=document.getElementById("btn-royal-confirm");
-        if(btnConf){ btnConf.disabled=true; btnConf.textContent="Selecciona una opcion primero"; }
+        // Solo re-pintar opciones si el Rey aún no confirmó la crisis
+        if(!data.decisionCrisis){
+            // Evitar duplicar botones si ya los pintó antes
+            if(optsDiv.children.length===0){
+                S.selectedOption=null;
+                sit.crisis.opciones.forEach((op,i)=>{
+                    const b=document.createElement("button"); b.type="button"; b.className="royal-option-btn";
+                    b.textContent=op.texto; b.dataset.index=i;
+                    b.addEventListener("click",()=>seleccionarOpcionCrisis(i,b));
+                    optsDiv.appendChild(b);
+                });
+                const btnConf=document.getElementById("btn-royal-confirm");
+                if(btnConf){ btnConf.disabled=true; btnConf.textContent="Selecciona una opcion primero"; }
+            }
+        } else {
+            // El Rey ya decidió — mostrar resultado
+            optsDiv.innerHTML=`<div class="option-btn selected" style="cursor:default;opacity:1;">✅ ${san(data.decisionCrisis.opcionTexto)}</div>`;
+            const btnConf=document.getElementById("btn-royal-confirm");
+            if(btnConf){ btnConf.disabled=true; btnConf.textContent="✅ Decisión del Reino Sellada"; btnConf.style.backgroundColor="var(--emerald)"; }
+        }
     } else {
         decSection.style.display="none";
         confirmRow.style.display="none";
-        waitMsg.style.display="block";
+        waitMsg.style.display= data.reyTemporal ? "block" : "none";
+        // Si no hay Rey aún, mostrar spinner de espera
+        if(!data.reyTemporal){
+            waitMsg.style.display="block";
+            waitMsg.textContent="Esperando que se elija al Rey Temporal...";
+        } else {
+            waitMsg.textContent="Comparte tu punto de vista con el Rey Temporal. El tomará la decisión final.";
+        }
     }
 
-    overlay.classList.add("active");
-
-    if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
-    _consejoChatListener=onSnapshot(
-        doc(db,"salas",S.salaId,"chats","consejo-real"),
-        snap=>{ if(!snap.exists()) return; renderConsejoChat(snap.data().mensajes||[]); }
-    );
-
-    enviarMensajeSistemaConsejo(S.playerName+" ("+S.grupo+") entro al Consejo Real.");
+    // Mostrar overlay si no está activo
+    if(primerAbrir){
+        overlay.classList.add("active");
+        // Iniciar listener de chat solo una vez
+        if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
+        _consejoChatListener=onSnapshot(
+            doc(db,"salas",S.salaId,"chats","consejo-real"),
+            snap=>{ if(!snap.exists()) return; renderConsejoChat(snap.data().mensajes||[]); }
+        );
+        enviarMensajeSistemaConsejo(S.playerName+" ("+S.grupo+") entro al Consejo Real.");
+    }
 }
 
 function seleccionarOpcionCrisis(i, btnEl) {
@@ -1867,28 +1987,45 @@ function seleccionarOpcionCrisis(i, btnEl) {
 
 async function confirmarDecisionCrisis() {
     if(S.selectedOption===null){ toast("Selecciona una opcion primero.","error"); return; }
-    const snap=await getDoc(doc(db,"salas",S.salaId));
-    const data=snap.data();
-    if(data.reyTemporal!==S.playerName){ toast("Solo el Rey Temporal puede confirmar.","info"); return; }
-    const sit=data.situacion;
-    const op=sit.crisis.opciones[S.selectedOption];
-    const ef=op.efectos;
-    const r=data.recursos;
-    const nuevosR={
-        food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
-        gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
-        order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
-        morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
-    };
+
     const btnConf=document.getElementById("btn-royal-confirm");
     if(btnConf){ btnConf.disabled=true; btnConf.textContent="Sellando decision..."; }
-    await enviarMensajeSistemaConsejo("El Rey Temporal "+san(S.playerName)+" ha decidido: "+san(op.texto));
-    await updateDoc(doc(db,"salas",S.salaId),{
-        decisionCrisis:{ jugador:S.playerName, opcionIndex:S.selectedOption, opcionTexto:op.texto, efectos:ef, timestamp:new Date().toISOString() },
-        recursos:nuevosR,
-        consejoBloqueado:false,
-    });
-    toast("Decision del Consejo Real registrada.","success",4000);
+
+    const salaRef=doc(db,"salas",S.salaId);
+    try {
+        await runTransaction(db, async (tx) => {
+            const snap=await tx.get(salaRef);
+            const data=snap.data();
+            // Verificar server-side que soy el Rey y que no se ha decidido ya
+            if(normNombre(data.reyTemporal)!==normNombre(S.playerName))
+                throw new Error("NO_REY");
+            if(data.decisionCrisis)
+                throw new Error("YA_DECIDIDO");
+
+            const sit=data.situacion;
+            const op=sit.crisis.opciones[S.selectedOption];
+            const ef=op.efectos;
+            const r=data.recursos||{food:70,gold:60,order:75,morale:65};
+            const nuevosR={
+                food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
+                gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
+                order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
+                morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
+            };
+            tx.update(salaRef,{
+                decisionCrisis:{ jugador:S.playerName, opcionIndex:S.selectedOption, opcionTexto:op.texto, efectos:ef, timestamp:new Date().toISOString() },
+                recursos:   nuevosR,
+                consejoBloqueado: false,
+            });
+        });
+        await enviarMensajeSistemaConsejo("El Rey Temporal "+san(S.playerName)+" ha decidido: "+san((RONDAS[S.rondaActual]?.crisis?.opciones||[])[S.selectedOption]?.texto||""));
+        toast("Decision del Consejo Real registrada.","success",4000);
+    } catch(e){
+        if(e.message==="NO_REY"){ toast("Solo el Rey Temporal puede confirmar.","info"); }
+        else if(e.message==="YA_DECIDIDO"){ toast("La crisis ya fue resuelta.","info"); }
+        else { console.error(e); toast("Error al confirmar. Intenta de nuevo.","error"); }
+        if(btnConf){ btnConf.disabled=false; btnConf.textContent="Confirmar Decision del Reino"; }
+    }
 }
 
 async function enviarMensajeConsejo() {
@@ -1979,7 +2116,7 @@ function mostrarDebriefingHost(data) {
             <p style="color:var(--gold);font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;">🔒 SOLO VISIBLE PARA EL PROFESOR</p>
             <p style="color:var(--text-mid);font-size:.85rem;">Estos resultados son para que puedas identificar el desempeño individual de cada gremio, detectar errores y guiar la reflexión con el grupo.</p>
         </div>
-        <h3 style="font-family:var(--font-display);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">📊 Resultado por Gremio</h3>
+        <h3 style="font-family:'Times New Roman',Times,serif;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">📊 Resultado por Gremio</h3>
         ${GRUPOS.map(g=>{
             const dec=data.decisiones?.[g];
             const icon=GRUPO_ICONS[g];
@@ -1997,7 +2134,7 @@ function mostrarDebriefingHost(data) {
             </div>`;
         }).join("")}
         ${data.decisionCrisis?`
-        <h3 style="font-family:var(--font-display);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:16px 0 12px;">⚔️ Última Decisión del Rey Temporal</h3>
+        <h3 style="font-family:'Times New Roman',Times,serif;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:16px 0 12px;">⚔️ Última Decisión del Rey Temporal</h3>
         <div style="background:rgba(0,0,0,.25);border-radius:8px;padding:12px;border-left:3px solid var(--gold);">
             <p style="font-size:.9rem;color:var(--text-light);">"${san(data.decisionCrisis.opcionTexto)}"</p>
             <p style="font-size:.78rem;color:var(--text-dim);margin-top:4px;">Rey Temporal: ${san(data.decisionCrisis.jugador||"—")}</p>
