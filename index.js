@@ -311,14 +311,17 @@ const RONDAS = [
             }
         },
         crisis: {
-            titulo: "🔥 CRISIS GLOBAL — El Gran Incendio del Mercado",
-            texto: `El mercado central del reino ha estallado en llamas. Se pierden almacenes de grano, puestos de comercio, herramientas y registros médicos. El fuego sigue activo. 
-Todos los gremios están afectados. Solo el Rey Temporal puede decidir cómo responder como reino unido.
-Esta decisión tendrá consecuencias MASIVAS para todos los recursos.`,
+            titulo: "🔥 CRISIS GLOBAL — El Dilema del Mercado en Llamas",
+            texto: `El mercado central ha estallado en llamas. Se pierden almacenes de grano, puestos de comercio, herramientas y registros médicos. El fuego avanza. Todos los gremios están afectados.
+DILEMA DE TEORÍA DE JUEGOS: Si cada gremio actúa solo protegiendo lo suyo, el incendio se expande y todos pierden más. Solo la cooperación total minimiza el daño colectivo. Pero cooperar significa que cada quien sacrifica algo. ¿Confían en que los demás también cooperarán?
+El Rey Temporal debe decidir la estrategia del reino.`,
             opciones: [
-                { texto: "🚒 Prioridad total: apagar el fuego con todos los recursos disponibles", efectos:{ food:-5, gold:-20, order:+20, morale:+15 } },
-                { texto: "💾 Salvar primero los registros y el grano: lo material se reconstruye", efectos:{ food:+10, gold:-10, order:-5, morale:+5 } },
-                { texto: "🏗️ Dejar arder y usar energía en reconstruir mejor desde cero", efectos:{ food:-15, gold:-15, order:-10, morale:-20 } }
+                { texto: "🚒 Cooperación total: todos los gremios aportan recursos para apagar el fuego", efectos:{ food:-5, gold:-20, order:+25, morale:+20 } },
+                { texto: "🌾 Cada gremio protege primero sus propios almacenes, luego ayuda", efectos:{ food:+10, gold:-5, order:-10, morale:-15 } },
+                { texto: "💾 Prioridad a registros médicos y semillas: la vida futura importa más", efectos:{ food:+15, gold:-10, order:-5, morale:+10 } },
+                { texto: "🏗️ Evacuar personas, dejar arder bienes: reconstruir con deuda externa", efectos:{ food:-10, gold:-15, order:+10, morale:+5 } },
+                { texto: "⚖️ Crear un fondo de emergencia colectivo y distribuir tareas por gremio", efectos:{ food:+5, gold:-25, order:+20, morale:+25 } },
+                { texto: "📋 Subasta de recursos: quien más pague, más protección recibe su zona", efectos:{ food:-5, gold:+10, order:-20, morale:-25 } }
             ]
         }
     },
@@ -511,14 +514,17 @@ Esta decisión tendrá consecuencias MASIVAS para todos los recursos.`,
             }
         },
         crisis: {
-            titulo: "⚔️ CRISIS GLOBAL — Invasión de los Bandidos del Norte",
-            texto: `Una banda organizada de más de 300 bandidos cruzó la frontera norte y ya saqueó dos aldeas. Avanzan hacia el castillo. El tiempo es crítico.
-Todos los gremios están en peligro. El Rey Temporal debe decidir la respuesta militar y social del reino ante esta invasión.
-Recuerda: esta decisión afectará TODOS los recursos del reino.`,
+            titulo: "⚔️ CRISIS GLOBAL — El Dilema de Seguridad y Cooperación",
+            texto: `Una banda organizada de 300 invasores cruzó la frontera y ya saqueó dos aldeas. Avanzan hacia la capital. El tiempo es crítico.
+DILEMA DE RELACIONES INTERNACIONALES: Este es el clásico "dilema del prisionero" a escala nacional. Si el reino muestra fuerza, puede disuadir futuros ataques pero genera más enemigos. Si negocia, puede resolver esto pero invita a otros a probar la misma táctica. ¿Qué señal quiere enviar el reino al mundo?
+También hay un dilema económico: cada opción consume recursos que hacen falta en otros frentes.`,
             opciones: [
-                { texto: "⚔️ Respuesta militar total: enviar la guardia completa a enfrentarlos", efectos:{ food:-5, gold:-20, order:+25, morale:+15 } },
-                { texto: "🤝 Negociar: ofrecerles trabajo y tierras a cambio de que paren", efectos:{ food:-10, gold:-15, order:-5, morale:+20 } },
-                { texto: "🏰 Replegarse al castillo y esperar: no gastar recursos en pelear afuera", efectos:{ food:-20, gold:0, order:-20, morale:-25 } }
+                { texto: "⚔️ Fuerza disuasiva total: respuesta militar contundente como mensaje al mundo", efectos:{ food:-5, gold:-25, order:+30, morale:+10 } },
+                { texto: "🤝 Negociación estratégica: ofrecerles integración laboral a cambio de rendición", efectos:{ food:-10, gold:-15, order:0, morale:+25 } },
+                { texto: "🏰 Defensa pasiva: fortalecer muros y esperar — conservar recursos", efectos:{ food:-5, gold:-5, order:+10, morale:-15 } },
+                { texto: "🌐 Pedir ayuda a reinos aliados: problema regional, solución regional", efectos:{ food:0, gold:-10, order:+15, morale:+20 } },
+                { texto: "💰 Pagar rescate por las aldeas afectadas y expulsarlos con compensación", efectos:{ food:0, gold:-30, order:-5, morale:+5 } },
+                { texto: "🕵️ Operación encubierta: infiltrar y desmantelar su liderazgo sin confrontación abierta", efectos:{ food:0, gold:-20, order:+20, morale:+15 } }
             ]
         }
     },
@@ -774,14 +780,15 @@ Recuerda: esta decisión afectará TODOS los recursos del reino.`,
             }
         },
         crisis: {
-            titulo: "🌊 CRISIS GLOBAL — La Gran Inundación",
-            texto: `Las lluvias de los últimos 10 días desbordaron el río principal. Tres aldeas están anegadas, almacenes de grano bajo el agua, forjas apagadas y los caminos cortados.
-El reino paralizado en todos sus frentes. El Rey Temporal debe decidir cómo distribuir los recursos de emergencia del reino.
-Esta es la crisis más costosa hasta ahora.`,
+            titulo: "🌊 CRISIS GLOBAL — El Dilema de los Recursos Escasos",
+            texto: `Las lluvias desbordaron el río. Tres aldeas inundadas, almacenes bajo el agua, forjas apagadas, caminos cortados. El reino está paralizado.
+DILEMA DE ECONOMÍA Y ÉTICA: Los recursos de emergencia son insuficientes para todo. Hay que elegir qué salvar primero, lo que implica elegir qué (o quién) se pierde. Este es el problema central de la microeconomía: asignación de recursos escasos con necesidades ilimitadas. ¿Qué criterio usa el reino? ¿Eficiencia (maximizar lo salvado), equidad (distribuir igual) o necesidad (salvar a quien más lo necesita)?`,
             opciones: [
-                { texto: "🏘️ Evacuar primero a personas: vidas antes que bienes", efectos:{ food:-20, gold:-15, order:+15, morale:+25 } },
-                { texto: "🌾 Salvar los almacenes de grano primero: sin comida no hay supervivencia", efectos:{ food:+15, gold:-20, order:-5, morale:-10 } },
-                { texto: "🏗️ Construir diques de emergencia para detener la inundación", efectos:{ food:-10, gold:-25, order:+20, morale:+15 } }
+                { texto: "👥 Criterio de necesidad: evacuar primero a ancianos, niños y enfermos", efectos:{ food:-15, gold:-15, order:+10, morale:+30 } },
+                { texto: "📦 Criterio de eficiencia: salvar lo que genere más valor a largo plazo (semillas y herramientas)", efectos:{ food:+10, gold:-10, order:-5, morale:-10 } },
+                { texto: "⚖️ Criterio de equidad: distribuir los recursos de emergencia igualmente entre todas las aldeas", efectos:{ food:0, gold:-20, order:+10, morale:+15 } },
+                { texto: "🏗️ Criterio técnico: construir diques ahora para parar la pérdida antes de rescatar", efectos:{ food:-10, gold:-25, order:+25, morale:+5 } },
+                { texto: "💼 Criterio de mercado: quien pueda pagar por la ayuda, la recibe primero", efectos:{ food:+5, gold:+10, order:-10, morale:-30 } }
             ]
         }
     },
@@ -974,15 +981,17 @@ Esta es la crisis más costosa hasta ahora.`,
             }
         },
         crisis: {
-            titulo: "⚔️ CRISIS GLOBAL — El Ultimátum Final",
-            texto: `Un reino enemigo poderoso envía su ultimátum definitivo: rendición incondicional en 48 horas o guerra total.
-Tienen más tropas, más recursos, y han esperado el momento en que el reino estuviera más debilitado.
-Esta es la decisión más importante de toda la simulación. El Rey Temporal habla en nombre de todos.
-Lo que decidan aquí determinará el destino final del reino.`,
+            titulo: "⚔️ CRISIS GLOBAL — El Gran Dilema: Soberanía vs Supervivencia",
+            texto: `Un reino enemigo poderoso envía su ultimátum definitivo: rendición incondicional en 48 horas o guerra total. Han esperado el momento de mayor debilidad del reino.
+DILEMA DE GEOPOLÍTICA Y ÉTICA POLÍTICA: Esta es la tensión más antigua del poder: ¿Tiene un gobernante derecho a arriesgar vidas por conservar la soberanía? ¿O la soberanía es exactamente lo que protege las vidas a largo plazo? Los psicólogos llaman a esto el "sesgo del presente": los seres humanos tienden a sobrevaluar el costo inmediato (la guerra) versus el costo diferido (la pérdida de libertad). El Rey Temporal debe pensar no solo en hoy, sino en las generaciones que vienen.
+Esta es la decisión más importante de toda la simulación.`,
             opciones: [
-                { texto: "⚔️ Rechazar y luchar: morir de pie antes que vivir de rodillas", efectos:{ food:-15, gold:-20, order:+30, morale:+30 } },
-                { texto: "🏳️ Rendición negociada: conservar autonomía interna a cambio de tributo", efectos:{ food:+5, gold:-30, order:-10, morale:-20 } },
-                { texto: "🌐 Última misión diplomática: buscar apoyo de 3 reinos aliados en 24 horas", efectos:{ food:-5, gold:-15, order:+15, morale:+25 } }
+                { texto: "⚔️ Resistencia total: rechazar el ultimátum y preparar defensa militar completa", efectos:{ food:-20, gold:-25, order:+30, morale:+35 } },
+                { texto: "🏳️ Rendición negociada: autonomía interna a cambio de tributo económico anual", efectos:{ food:+5, gold:-30, order:-15, morale:-20 } },
+                { texto: "🌐 Coalición urgente: 24 horas para conseguir aliados que equilibren la fuerza", efectos:{ food:-5, gold:-15, order:+20, morale:+25 } },
+                { texto: "🕊️ Propuesta de federación: unirse como estado autónomo, no como colonia", efectos:{ food:+10, gold:-10, order:0, morale:-5 } },
+                { texto: "💣 Disuasión asimétrica: amenazar con destruir los propios recursos si invaden", efectos:{ food:-25, gold:-25, order:+5, morale:+10 } },
+                { texto: "📜 Referéndum popular: dejar que TODOS los ciudadanos voten la decisión en 12 horas", efectos:{ food:-5, gold:-5, order:-5, morale:+40 } }
             ]
         }
     },
@@ -1059,8 +1068,8 @@ const S = {
     playerName:     "",
     grupo:          "",
     isHost:         false,
-    isLeader:       false,
     rondaActual:    0,
+    votoPropio:     null,   // indice de opcion que este jugador voto
     timerInterval:  null,
     salaListener:   null,
     chatListener:   null,
@@ -1143,8 +1152,8 @@ async function crearSala() {
         salaId, estado:"esperando", ronda:0, tiempo:TIEMPO_RONDA,
         recursos:{ food:70, gold:60, order:75, morale:65 },
         jugadores:{}, decisiones:{}, decisionCrisis:null,
-        votos:{}, lideres:{}, reyTemporal:null, votosRey:{},
-        eleccionPendiente:false, eleccionReyPendiente:false,
+        reyTemporal:null, votosRey:{}, votosGrupo:{},
+        eleccionReyPendiente:false,
         situacion:null, puedeAvanzar:false,
     };
     try {
@@ -1218,8 +1227,7 @@ async function lanzarRonda(idx) {
     await updateDoc(salaRef,{
         estado:"jugando", ronda:idx, tiempo:TIEMPO_RONDA,
         situacion:sit, decisiones:{}, decisionCrisis:null,
-        votos:{}, votosRey:{}, reyTemporal:null,
-        eleccionPendiente: true,
+        votosRey:{}, votosGrupo:{}, reyTemporal:null,
         eleccionReyPendiente: sit.tipo==="rey",
         puedeAvanzar:false,
         tiempoAgotado:false,
@@ -1303,7 +1311,7 @@ async function unirseJugador() {
     if(nombresExistentes.includes(nombreNorm)){
         toast(`El nombre "${nombre}" ya está en uso en esta sala. Elige otro nombre.`,"error",4000); return;
     }
-    S.salaId=sala; S.playerName=san(nombre); S.grupo=grupo; S.isHost=false; S.isLeader=false;
+    S.salaId=sala; S.playerName=san(nombre); S.grupo=grupo; S.isHost=false;
     await updateDoc(doc(db,"salas",sala),{
         [`jugadores.${S.playerName}`]:{ grupo, nombre:S.playerName, timestamp:new Date().toISOString() }
     });
@@ -1325,9 +1333,6 @@ function actualizarHost(data) {
 
     const jug=data.jugadores||{};
     const dec=data.decisiones||{};
-    const lideres=data.lideres||{};
-    const votos=data.votos||{};
-    const votosRey=data.votosRey||{};
     const totalJug=Object.keys(jug).length;
 
     // ── Fase de espera: mostrar boton iniciar y conteo ──
@@ -1373,23 +1378,16 @@ function actualizarHost(data) {
         if(countEl) countEl.textContent=`${n} / ${MAX_POR_GRUPO} miembros`;
         if(!card) return;
 
-        // Estado de decision
+        // Estado de decision (modo democrático)
         if(dec[g]){
             card.classList.add("ready");
-            if(statusEl) statusEl.innerHTML=`✅ Decidio: <em>${san(dec[g].opcionTexto||"").slice(0,40)}...</em>`;
+            if(statusEl) statusEl.innerHTML=`✅ Decidido por votación`;
         } else {
             card.classList.remove("ready");
-            // Mostrar estado de votacion de lider si aplica
-            const votosGrupo=votos[g]||{};
-            const lider=lideres[g];
-            if(lider){
-                if(statusEl) statusEl.innerHTML=`👑 Lider: <strong>${san(lider)}</strong> — ${n>0?"deliberando":"sin jugadores"}`;
-            } else if(Object.keys(votosGrupo).length>0){
-                // Mostrar conteo de votos
-                const conteo={};
-                Object.values(votosGrupo).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
-                const tallyStr=Object.entries(conteo).map(([k,v])=>`${san(k)}: ${v}v`).join(" | ");
-                if(statusEl) statusEl.innerHTML=`🗳️ Votando: ${tallyStr}`;
+            const vGrupo=data.votosGrupo?.[g]||{};
+            const nVotos=Object.keys(vGrupo).length;
+            if(nVotos>0){
+                if(statusEl) statusEl.innerHTML=`🗳️ ${nVotos}/${n} votaron`;
             } else {
                 if(statusEl) statusEl.textContent=n>0?"🗣️ Deliberando...":"💤 Sin jugadores";
             }
@@ -1413,20 +1411,20 @@ function actualizarHost(data) {
     if(data.estado==="finalizado") mostrarDebriefingHost(data);
 }
 
-/* ── Panel de votos para Rey Temporal — solo visible para el profesor ── */
+/* ── Panel democrático: votos individuales por gremio + votación Rey Temporal ── */
 function renderVotosReyHost(data) {
     let panel=document.getElementById("host-votes-panel");
     const sit=data.situacion;
     const esRey=sit?.tipo==="rey";
-    const lideres=data.lideres||{};
     const votosRey=data.votosRey||{};
+    const votosGrupo=data.votosGrupo||{};
     const jug=data.jugadores||{};
     const reyTemporal=data.reyTemporal;
 
-    // Solo mostrar en fases rey o en fase de espera (eleccion de lideres)
-    const hayVotosLider=Object.values(data.votos||{}).some(v=>Object.keys(v).length>0);
-    const hayLideres=Object.keys(lideres).length>0;
-    const mostrar=hayVotosLider||hayLideres||(esRey&&(Object.keys(votosRey).length>0||reyTemporal));
+    // Mostrar si hay votos en algún gremio o votos para Rey
+    const hayVotos=Object.values(votosGrupo).some(g=>Object.keys(g).length>0);
+    const hayVotosRey=Object.keys(votosRey).length>0||reyTemporal;
+    const mostrar=hayVotos||(esRey&&hayVotosRey);
 
     if(!mostrar){
         if(panel) panel.style.display="none";
@@ -1442,28 +1440,45 @@ function renderVotosReyHost(data) {
     panel.style.display="block";
 
     let html=`<h3 style="font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;">
-        🗳️ Estado de Elecciones</h3>`;
+        🗳️ Votos por Gremio (Tiempo Real)</h3>`;
 
-    // Lideres elegidos y votos por grupo
-    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px;">`;
+    // Votos individuales por gremio
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:14px;">`;
     GRUPOS.forEach(g=>{
         const miembros=Object.values(jug).filter(j=>j.grupo===g);
         if(!miembros.length) return;
-        const lider=lideres[g];
-        const votosGrupo=data.votos?.[g]||{};
-        const conteo={};
-        Object.values(votosGrupo).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
+        const grupoVotos=votosGrupo[g]||{};
+        const totalMiembros=miembros.length;
+        const totalVotos=Object.keys(grupoVotos).length;
         const icon=GRUPO_ICONS[g];
+        const dec=data.decisiones?.[g];
+
+        // Conteo por opcion
+        const conteoOpc={};
+        Object.values(grupoVotos).forEach(v=>{conteoOpc[v]=(conteoOpc[v]||0)+1;});
 
         let contenido="";
-        if(lider){
-            contenido=`<div style="color:var(--gold-bright);font-size:.82rem;margin-top:6px;">👑 Lider: <strong>${san(lider)}</strong></div>`;
-        } else if(Object.keys(conteo).length){
-            contenido=Object.entries(conteo).map(([k,v])=>
-                `<div style="font-size:.78rem;color:var(--text-mid);margin-top:3px;">▸ ${san(k)}: ${v} voto(s)</div>`
-            ).join("");
+        if(dec){
+            contenido=`<div style="color:#5dd9a8;font-size:.8rem;margin-top:5px;">✅ Decidido: <em>${san(dec.opcionTexto||"").slice(0,35)}...</em></div>
+            <div style="font-size:.75rem;color:var(--text-dim);margin-top:2px;">${dec.votos||"?"}/${dec.totalVotos||"?"} votos${dec.fueEmpate?" — empate resuelto":""}</div>`;
+        } else if(totalVotos>0){
+            // Mostrar barra de progreso de votos
+            contenido=`<div style="font-size:.75rem;color:var(--text-mid);margin-top:4px;">🗳️ ${totalVotos}/${totalMiembros} han votado</div>`;
+            if(sit?.grupos?.[g]){
+                contenido+=sit.grupos[g].opciones.map((op,i)=>{
+                    const v=conteoOpc[i]||0;
+                    const pct=totalMiembros>0?Math.round(v/totalMiembros*100):0;
+                    return v>0?`<div style="font-size:.72rem;color:var(--text-mid);margin-top:2px;display:flex;align-items:center;gap:6px;">
+                        <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:5px;">
+                            <div style="width:${pct}%;background:var(--gold);border-radius:4px;height:5px;"></div>
+                        </div>
+                        <span style="color:var(--gold);min-width:18px;">${v}</span>
+                        <span style="color:var(--text-dim);font-size:.68rem;">${san(op.texto.slice(0,20))}…</span>
+                    </div>`:"";
+                }).join("");
+            }
         } else {
-            contenido=`<div style="font-size:.78rem;color:var(--text-dim);margin-top:4px;">Sin votos aun</div>`;
+            contenido=`<div style="font-size:.78rem;color:var(--text-dim);margin-top:4px;">⏳ Sin votos aún</div>`;
         }
 
         html+=`<div style="background:rgba(0,0,0,.25);border-radius:8px;padding:10px;border:1px solid var(--border-faint);">
@@ -1473,25 +1488,34 @@ function renderVotosReyHost(data) {
     });
     html+=`</div>`;
 
-    // Votos para Rey Temporal
+    // Votación para Rey Temporal
     if(esRey){
         html+=`<div style="border-top:1px solid var(--border-faint);padding-top:12px;margin-top:4px;">
             <p style="font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
-                ⚔️ Votacion Rey Temporal</p>`;
+                ⚔️ Votación Rey Temporal (todos los jugadores)</p>`;
         if(reyTemporal){
-            html+=`<p style="color:var(--gold-bright);font-size:.9rem;font-weight:700;">👑 Rey Temporal elegido: ${san(reyTemporal)}</p>`;
-        } else if(Object.keys(votosRey).length){
+            html+=`<p style="color:var(--gold-bright);font-size:.95rem;font-weight:700;">👑 Rey Temporal elegido: ${san(reyTemporal)}</p>`;
+        } else if(Object.keys(votosRey).length>0){
             const conteoRey={};
             Object.values(votosRey).forEach(v=>{conteoRey[v]=(conteoRey[v]||0)+1;});
-            html+=Object.entries(conteoRey).map(([k,v])=>
-                `<div style="font-size:.82rem;color:var(--text-mid);margin-bottom:4px;">▸ ${san(k)}: ${v} voto(s) de lideres</div>`
-            ).join("");
+            const totalJug=Object.keys(jug).length;
+            const totalVotosRey=Object.keys(votosRey).length;
+            html+=`<div style="font-size:.8rem;color:var(--text-mid);margin-bottom:6px;">🗳️ ${totalVotosRey}/${totalJug} han votado</div>`;
+            html+=Object.entries(conteoRey).sort((a,b)=>b[1]-a[1]).map(([k,v])=>{
+                const pct=totalJug>0?Math.round(v/totalJug*100):0;
+                return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+                    <span style="font-size:.8rem;color:var(--text-light);min-width:80px;">${san(k)}</span>
+                    <div style="flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:8px;">
+                        <div style="width:${pct}%;background:var(--gold);border-radius:4px;height:8px;transition:width .5s;"></div>
+                    </div>
+                    <span style="color:var(--gold);font-size:.82rem;min-width:30px;">${v} voto${v!==1?"s":""}</span>
+                </div>`;
+            }).join("");
         } else {
-            html+=`<p style="font-size:.82rem;color:var(--text-dim);">Los lideres aun no han votado.</p>`;
+            html+=`<p style="font-size:.82rem;color:var(--text-dim);">Los jugadores aún no han votado por el Rey Temporal.</p>`;
         }
         html+=`</div>`;
     }
-
     panel.innerHTML=html;
 }
 
@@ -1545,11 +1569,9 @@ function actualizarPlayer(data) {
     const ovEl=document.getElementById("player-timeout-overlay");
     if(ovEl) ovEl.style.display=data.tiempoAgotado?"flex":"none";
 
-    // Liderazgo
-    const lideres=data.lideres||{};
-    S.isLeader=lideres[S.grupo]===S.playerName;
-    document.getElementById("player-leader-badge").style.display=S.isLeader?"inline-block":"none";
-    document.getElementById("player-member-badge").style.display=S.isLeader?"none":"inline-block";
+    // En modo democrático no hay líder — todos votan individualmente
+    document.getElementById("player-leader-badge").style.display="none";
+    document.getElementById("player-member-badge").style.display="inline-block";
 
     const sit=data.situacion;
     if(!sit) return;
@@ -1559,35 +1581,21 @@ function actualizarPlayer(data) {
     // Nueva ronda: re-renderizar
     if(ronda!==_lastRondaRendered){
         _lastRondaRendered=ronda;
-        S.selectedOption=null; S.electionDone=false; _lastEleccionKey="";
-        // No usamos S.decisionConfirmada — Firestore es la fuente de verdad.
-        // Limpiar cualquier bloqueo visual residual de la ronda anterior.
+        S.selectedOption=null; S.electionDone=false; S.votoPropio=null; _lastEleccionKey="";
+        // Limpiar bloqueo visual de la ronda anterior
         document.querySelectorAll(".option-btn").forEach(b=>{
-            b.disabled=false; b.style.cursor="pointer"; b.style.opacity="1";
+            b.disabled=false; b.style.cursor="pointer"; b.style.opacity="1"; b.classList.remove("selected");
         });
         renderSituacionJugador(sit, data);
     }
 
-    // Elección de líder pendiente
-    if(data.eleccionPendiente&&!S.electionDone){
-        const key=`lider-${ronda}`;
-        if(key!==_lastEleccionKey){
-            _lastEleccionKey=key;
-            if(!lideres[S.grupo]) mostrarEleccionLider(data);
-            else S.electionDone=true;
-        }
-    }
-
-    // Elección de Rey Temporal pendiente (rondas rey, después de que los líderes están elegidos)
+    // Elección de Rey Temporal pendiente (rondas rey)
+    // Cualquier jugador puede iniciar el proceso — ya no se requiere ser líder
     if(sit.tipo==="rey"&&data.eleccionReyPendiente&&!data.reyTemporal){
-        const keyRey=`rey-${ronda}`;
-        if(keyRey!==_lastEleccionKey&&lideres[S.grupo]===S.playerName){
-            // Mostrar advertencia solo al líder del grupo afectado
-            const wKey=`warning-${ronda}`;
-            if(wKey!==_lastEleccionKey){
-                _lastEleccionKey=wKey;
-                mostrarAdvertenciaRey(sit);
-            }
+        const wKey=`warning-${ronda}`;
+        if(wKey!==_lastEleccionKey){
+            _lastEleccionKey=wKey;
+            mostrarAdvertenciaRey(sit);
         }
     }
 
@@ -1604,7 +1612,8 @@ function actualizarPlayer(data) {
 }
 
 /* ============================================================
-   RENDER SITUACIÓN DEL JUGADOR
+   RENDER SITUACIÓN DEL JUGADOR — MODO DEMOCRÁTICO
+   Cada jugador vota individualmente. La mayoría decide.
    ============================================================ */
 function renderSituacionJugador(sit, data) {
     const grupoSit=sit.grupos?.[S.grupo];
@@ -1618,7 +1627,7 @@ function renderSituacionJugador(sit, data) {
     optsCont.innerHTML="";
 
     if(!grupoSit){
-        infoBox.textContent="Tu gremio no tiene situación en esta ronda. Observa y participa en el chat.";
+        infoBox.textContent="Tu gremio no participa en esta situación. Observa y apoya en el chat.";
         if(lnote) lnote.style.display="none";
         if(btnS) btnS.disabled=true;
         return;
@@ -1627,125 +1636,168 @@ function renderSituacionJugador(sit, data) {
     infoBox.innerHTML=`<strong>${san(grupoSit.titulo)}</strong><br><br>${san(grupoSit.texto).replace(/\n/g,"<br>")}`;
     infoBox.classList.add("active");
 
-    // Si ya decidió
+    // Mostrar nota democrática
+    if(lnote){
+        lnote.style.display="block";
+        lnote.textContent="🗳️ Cada miembro del gremio vota. La opción con más votos será la decisión final.";
+    }
+
+    // Mostrar conteo de votos del grupo
+    const votosGrupo=data.votosGrupo?.[S.grupo]||{};
+    const miVoto=votosGrupo[S.playerName];
+
+    // Mostrar si la decisión grupal ya fue calculada y aplicada
     if(data.decisiones?.[S.grupo]){
         const d=data.decisiones[S.grupo];
-        optsCont.innerHTML=`<div class="option-btn selected" style="cursor:default;">✅ ${san(d.opcionTexto)}</div>`;
-        if(lnote) lnote.style.display="none";
-        if(btnS){ btnS.disabled=true; btnS.textContent="✅ Decisión Confirmada"; btnS.style.backgroundColor="var(--emerald)"; }
+        optsCont.innerHTML=`
+            <div class="option-btn selected" style="cursor:default;opacity:1;">
+                ✅ Decisión del grupo: ${san(d.opcionTexto)}
+            </div>
+            <p style="font-size:.8rem;color:var(--text-mid);margin-top:8px;text-align:center;">
+                Ganó por ${d.votos||"?"}/${d.totalVotos||"?"} votos
+                ${d.fueEmpate?" — ⚡ hubo empate: se eligió por orden de llegada":""}
+            </p>`;
+        if(btnS){ btnS.disabled=true; btnS.textContent="✅ Tu grupo ya decidió"; btnS.style.backgroundColor="var(--emerald)"; }
         return;
     }
 
-    // Opciones
+    // Renderizar opciones — cada jugador puede votar
     grupoSit.opciones.forEach((op,i)=>{
+        const votosEstaOpcion=Object.values(votosGrupo).filter(v=>v===i).length;
+        const esmiVoto=miVoto===i;
         const b=document.createElement("button");
-        b.type="button"; b.className="option-btn"; b.textContent=op.texto; b.dataset.index=i;
-        b.addEventListener("click",()=>seleccionarOpcion(i,grupoSit,b));
+        b.type="button";
+        b.className="option-btn"+(esmiVoto?" selected":"");
+        b.dataset.index=i;
+        b.innerHTML=`${san(op.texto)}<span style="float:right;font-size:.8rem;color:var(--gold);margin-left:8px;">${votosEstaOpcion>0?`🗳️ ${votosEstaOpcion}`:""}</span>`;
+        if(miVoto!==undefined){
+            // Ya votó — bloquear cambio
+            b.disabled=true; b.style.cursor="default";
+            if(!esmiVoto) b.style.opacity=".4";
+        } else {
+            b.addEventListener("click",()=>emitirVotoIndividual(i, grupoSit, b));
+        }
         optsCont.appendChild(b);
     });
 
-    if(lnote) lnote.style.display="block";
-    if(btnS){ btnS.disabled=true; btnS.textContent="🔒 Confirmar Decisión Final"; btnS.style.backgroundColor=""; btnS.style.borderColor=""; }
-}
-
-function seleccionarOpcion(i, sit, btnEl) {
-    if(!S.isLeader){ toast("Solo el Líder del gremio puede seleccionar la decisión.","info"); return; }
-    const btnS=document.getElementById("btn-submit-action");
-    // Guard: si el botón ya dice "Confirmad..." la decisión está sellada
-    if(btnS&&btnS.disabled&&btnS.textContent.includes("Confirmad")){
-        toast("Ya confirmaste tu decisión. No puedes cambiarla.","info"); return;
+    if(btnS){
+        if(miVoto!==undefined){
+            btnS.disabled=true;
+            btnS.textContent="⏳ Esperando votos de tu gremio...";
+            btnS.style.backgroundColor="var(--gold-dim)";
+        } else {
+            btnS.disabled=true;
+            btnS.textContent="👆 Selecciona tu opción para votar";
+            btnS.style.backgroundColor=""; btnS.style.borderColor="";
+        }
     }
-    S.selectedOption=i;
-    document.querySelectorAll(".option-btn").forEach(b=>b.classList.remove("selected"));
-    btnEl.classList.add("selected");
-    const ef=sit.opciones[i].efectos;
-    const prevCont=document.getElementById("consequences-preview");
-    prevCont.style.display="flex";
-    prevCont.innerHTML=Object.entries(ef).map(([k,v])=>{
-        const label={food:"🌾 Alimento",gold:"🪙 Tesoro",order:"⚔️ Orden",morale:"💜 Moral"}[k];
-        return `<span class="consequence-tag ${v>=0?"good":"bad"}">${label} ${v>=0?"+":""}${v}</span>`;
-    }).join("");
-    if(btnS) btnS.disabled=false;
 }
 
 /* ============================================================
-   CONFIRMAR DECISIÓN — usa runTransaction para evitar
-   doble escritura y condición de carrera entre líderes.
-   Bloqueo optimista inmediato ANTES de esperar a Firestore.
+   VOTO INDIVIDUAL (MODO DEMOCRÁTICO)
+   Cada jugador registra su voto. Cuando todos votaron,
+   se calcula la mayoría y se aplica la decisión.
    ============================================================ */
-async function confirmarDecision() {
-    if(!S.isLeader)             { toast("Solo el Líder puede confirmar.","info"); return; }
-    if(S.selectedOption===null) { toast("Selecciona una opción primero.","error"); return; }
-    const sit=RONDAS[S.rondaActual];
-    if(!sit) return;
-    const grupoSit=sit.grupos[S.grupo];
-    if(!grupoSit) return;
+async function emitirVotoIndividual(i, grupoSit, btnEl) {
+    if(S.votoPropio!==null){ toast("Ya emitiste tu voto en esta ronda.","info"); return; }
+    S.votoPropio=i; // bloqueo optimista local
 
-    // ── Bloqueo optimista INMEDIATO (antes de Firestore) ──
-    const btnS=document.getElementById("btn-submit-action");
-    btnS.disabled=true; btnS.innerHTML=`<span class="spinner"></span> Sellando...`;
+    // Bloquear UI inmediatamente
     document.querySelectorAll(".option-btn").forEach(b=>{
         b.disabled=true; b.style.cursor="default";
-        b.style.opacity=b.classList.contains("selected")?"1":".35";
+        if(b.dataset.index!=i) b.style.opacity=".4";
     });
+    btnEl.classList.add("selected");
+    const btnS=document.getElementById("btn-submit-action");
+    if(btnS){ btnS.disabled=true; btnS.textContent="⏳ Esperando votos de tu gremio..."; btnS.style.backgroundColor="var(--gold-dim)"; }
 
-    const op=grupoSit.opciones[S.selectedOption];
-    const ef=op.efectos;
     const salaRef=doc(db,"salas",S.salaId);
-
     try {
-        // ── runTransaction: verifica server-side que el grupo aún no haya decidido ──
         await runTransaction(db, async (tx) => {
             const snap=await tx.get(salaRef);
-            if(!snap.exists()) throw new Error("Sala no encontrada");
+            if(!snap.exists()) throw new Error("sala");
             const data=snap.data();
 
-            // Guardia server-side: si ya existe decisión para este grupo, abortar
-            if(data.decisiones?.[S.grupo]) {
-                throw new Error("YA_DECIDIDO");
-            }
+            // Si ya hay decisión para este grupo, no hacer nada
+            if(data.decisiones?.[S.grupo]) throw new Error("YA_DECIDIDO");
+            // Si este jugador ya votó, no permitir
+            if(data.votosGrupo?.[S.grupo]?.[S.playerName]!==undefined) throw new Error("YA_VOTO");
 
-            const r=data.recursos||{food:70,gold:60,order:75,morale:65};
-            const nuevosR={
-                food:  Math.max(0,Math.min(100,(r.food||0)  +(ef.food||0))),
-                gold:  Math.max(0,Math.min(100,(r.gold||0)  +(ef.gold||0))),
-                order: Math.max(0,Math.min(100,(r.order||0) +(ef.order||0))),
-                morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
+            const nuevosVotos={
+                ...(data.votosGrupo?.[S.grupo]||{}),
+                [S.playerName]: i
             };
 
-            tx.update(salaRef, {
-                [`decisiones.${S.grupo}`]: {
-                    jugador:    S.playerName,
-                    opcionIndex:S.selectedOption,
-                    opcionTexto:op.texto,
-                    efectos:    ef,
-                    buena:      op.buena,
-                    timestamp:  new Date().toISOString()
-                },
-                recursos: nuevosR,
-            });
+            // Calcular cuántos miembros del grupo hay
+            const miembros=Object.values(data.jugadores||{}).filter(j=>j.grupo===S.grupo);
+            const totalMiembros=miembros.length;
+            const totalVotos=Object.keys(nuevosVotos).length;
+
+            // Calcular conteo
+            const conteo={};
+            Object.values(nuevosVotos).forEach(v=>{conteo[v]=(conteo[v]||0)+1;});
+            const sorted=Object.entries(conteo).sort((a,b)=>b[1]-a[1]);
+            const maxVotos=sorted[0][1];
+            const empatados=sorted.filter(e=>e[1]===maxVotos);
+            const hayMayoriaAbsoluta=maxVotos>totalMiembros/2;
+            const todosVotaron=totalVotos>=totalMiembros;
+
+            // Guardar el voto
+            tx.update(salaRef,{ [`votosGrupo.${S.grupo}`]: nuevosVotos });
+
+            // Tomar decisión si: todos votaron O hay mayoría absoluta ya
+            if(todosVotaron||hayMayoriaAbsoluta){
+                // Resolver empate: ganador es el primero en orden de índice (más conservador)
+                const ganadorIdx=parseInt(empatados[0][0]);
+                const fueEmpate=empatados.length>1&&!hayMayoriaAbsoluta;
+                const op=grupoSit.opciones[ganadorIdx];
+                const ef=op.efectos;
+                const r=data.recursos||{food:70,gold:60,order:75,morale:65};
+                const nuevosR={
+                    food:  Math.max(0,Math.min(100,(r.food||0)+(ef.food||0))),
+                    gold:  Math.max(0,Math.min(100,(r.gold||0)+(ef.gold||0))),
+                    order: Math.max(0,Math.min(100,(r.order||0)+(ef.order||0))),
+                    morale:Math.max(0,Math.min(100,(r.morale||0)+(ef.morale||0))),
+                };
+                tx.update(salaRef,{
+                    [`decisiones.${S.grupo}`]:{
+                        jugador:    "Democracia del gremio",
+                        opcionIndex:ganadorIdx,
+                        opcionTexto:op.texto,
+                        efectos:    ef,
+                        buena:      op.buena,
+                        votos:      maxVotos,
+                        totalVotos: totalVotos,
+                        fueEmpate,
+                        timestamp:  new Date().toISOString()
+                    },
+                    recursos:nuevosR,
+                });
+            }
         });
-
-        btnS.textContent="✅ Decisión Confirmada"; btnS.style.backgroundColor="var(--emerald)";
-        toast("Decisión registrada. Ya no puedes cambiarla.","success");
-        // S.decisionConfirmada ya no es la fuente de verdad — Firestore lo es.
-        // El re-render via onSnapshot lo confirma definitivamente.
-
-    } catch(e) {
-        if(e.message==="YA_DECIDIDO"){
-            // Otro líder ya confirmó (no debería pasar en uso normal, pero cubre reconexiones)
-            btnS.textContent="✅ Decisión ya registrada"; btnS.style.backgroundColor="var(--emerald)";
-            toast("La decisión de tu gremio ya fue registrada.","info");
+    } catch(e){
+        if(e.message==="YA_DECIDIDO"||e.message==="YA_VOTO"){
+            toast("Tu voto ya fue registrado.","info");
         } else {
-            console.error(e); toast("Error al confirmar. Intenta de nuevo.","error");
-            // Revertir bloqueo optimista para que el usuario pueda reintentar
-            btnS.disabled=false; btnS.textContent="🔒 Confirmar Decisión Final";
-            btnS.style.backgroundColor="";
+            console.error(e);
+            toast("Error al registrar voto. Intenta de nuevo.","error");
+            // Revertir bloqueo local
+            S.votoPropio=null;
             document.querySelectorAll(".option-btn").forEach(b=>{
                 b.disabled=false; b.style.cursor="pointer"; b.style.opacity="1";
+                b.classList.remove("selected");
             });
+            if(btnS){ btnS.textContent="👆 Selecciona tu opción"; btnS.style.backgroundColor=""; }
         }
     }
+}
+
+// Función confirmarDecision ahora es alias de emitirVotoIndividual
+// El botón "Confirmar" ya no existe en modo democrático — el voto es inmediato al elegir.
+async function confirmarDecision() {
+    // En modo democrático el voto se emite al hacer click en la opción.
+    // Este handler queda como fallback por si el botón sigue presente en el HTML.
+    toast("Selecciona directamente una opción para votar.","info");
 }
 
 /* ============================================================
@@ -1804,30 +1856,35 @@ async function iniciarEleccionReyTemporal() {
     document.getElementById("modal-warning-multi").classList.remove("active");
     const snap=await getDoc(doc(db,"salas",S.salaId));
     const data=snap.data();
-    const lideres=data.lideres||{};
-    const candidatos=GRUPOS.map(g=>lideres[g]).filter(Boolean);
-    if(!candidatos.length){ toast("Los lideres aun no han sido elegidos.","info"); return; }
+
+    // En modo democrático, TODOS los jugadores votan por el Rey Temporal
+    const jugadores=Object.values(data.jugadores||{});
+    const candidatos=[...new Set(jugadores.map(j=>j.nombre))];
+    if(!candidatos.length){ toast("No hay jugadores conectados aún.","info"); return; }
 
     const modal=document.getElementById("modal-election");
-    document.getElementById("modal-election-title").textContent="Elige al Rey Temporal";
+    document.getElementById("modal-election-title").textContent="⚔️ Elige al Rey Temporal";
     document.getElementById("modal-election-desc").textContent=
-        "Solo los Lideres de gremio votan. El Rey Temporal abrira el Consejo Real para debatir y luego decidira.";
+        "Todos los jugadores votan. El candidato con más votos será el Rey Temporal y tomará la decisión final tras el debate en el Consejo Real.";
     document.getElementById("vote-result").style.display="none";
     const grid=document.getElementById("vote-grid");
     grid.style.display=""; grid.innerHTML="";
 
-    const soyLider=lideres[S.grupo]===S.playerName;
+    // Verificar si ya votó este jugador
+    const yaVote=data.votosRey?.[S.playerName]!==undefined;
+
     candidatos.forEach(c=>{
+        const votosC=Object.values(data.votosRey||{}).filter(v=>v===c).length;
         const b=document.createElement("button"); b.type="button"; b.className="vote-btn";
-        b.innerHTML=`<span class="vote-crown">&#x1F451;</span> ${san(c)}`;
-        if(!soyLider){ b.disabled=true; b.style.opacity=".4"; }
-        else b.addEventListener("click",()=>emitirVotoRey(c, candidatos.length));
+        b.innerHTML=`<span class="vote-crown">&#x1F451;</span> ${san(c)} ${votosC>0?`<span style="float:right;color:var(--gold);font-size:.8rem;">🗳️ ${votosC}</span>`:""}`;
+        if(yaVote){ b.disabled=true; b.style.opacity=".5"; }
+        else b.addEventListener("click",()=>emitirVotoRey(c, jugadores.length));
         grid.appendChild(b);
     });
-    if(!soyLider){
+    if(yaVote){
         const p=document.createElement("p");
         p.style.cssText="color:var(--text-mid);font-size:.82rem;text-align:center;margin-top:12px;font-style:italic;";
-        p.textContent="Solo los Lideres de gremio pueden votar aqui.";
+        p.textContent="Ya emitiste tu voto. Esperando a los demás...";
         grid.appendChild(p);
     }
     modal.classList.add("active");
@@ -1845,12 +1902,10 @@ async function emitirVotoRey(candidato, total) {
         await runTransaction(db, async (tx) => {
             const snap=await tx.get(salaRef);
             const data=snap.data();
-            const lideres=data.lideres||{};
 
-            // Solo líderes votan
-            if(normNombre(lideres[S.grupo])!==normNombre(S.playerName)) return;
-            // No votar si ya hay Rey elegido
+            // En modo democrático todos votan — solo bloquear si ya hay Rey o ya votó
             if(data.reyTemporal) return;
+            if(data.votosRey?.[S.playerName]!==undefined) return;
 
             const nuevoVotos={...(data.votosRey||{}), [S.playerName]:candidato};
             const conteo={};
@@ -2064,9 +2119,15 @@ function renderConsejoChat(msgs) {
 
 function cerrarConsejoReal() {
     const overlay=document.getElementById("royal-council-overlay");
-    if(overlay) overlay.classList.remove("active");
+    if(overlay){
+        overlay.classList.remove("active");
+        // Limpiar opciones para que se repinten la próxima vez
+        const optsDiv=document.getElementById("royal-options");
+        if(optsDiv) optsDiv.innerHTML="";
+    }
     if(_consejoChatListener){ _consejoChatListener(); _consejoChatListener=null; }
     S.selectedOption=null;
+    S.votoPropio=null;
 }
 
 function cerrarModales(){ document.querySelectorAll(".modal-overlay").forEach(m=>m.classList.remove("active")); }
@@ -2195,7 +2256,7 @@ function leyendaMoraleja(r){
    ============================================================ */
 function reiniciar() {
     limpiarTimer(); detachAll();
-    Object.assign(S,{ salaId:"",playerName:"",grupo:"",isHost:false,isLeader:false,rondaActual:0,selectedOption:null,electionDone:false, recursos:{food:70,gold:60,order:75,morale:65} });
+    Object.assign(S,{ salaId:"",playerName:"",grupo:"",isHost:false,rondaActual:0,selectedOption:null,votoPropio:null,electionDone:false, recursos:{food:70,gold:60,order:75,morale:65} });
     _lastRondaRendered=-1; _lastEleccionKey="";
     document.getElementById("input-sala-id").value="";
     document.getElementById("input-player-name").value="";
